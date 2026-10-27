@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <!-- Guarantee @vitejs/plugin-react preamble detection in dev environment -->
+    <script>
+        window.__vite_plugin_react_preamble_installed__ = true;
+        window.$RefreshReg$ = window.$RefreshReg$ || function() {};
+        window.$RefreshSig$ = window.$RefreshSig$ || function() { return function(type) { return type; }; };
+    </script>
+
+    <!-- Safeguard global fetch against read-only getter restrictions in iframe/browser environments -->
+    <script>
+        (function() {
+            // 1. Safeguard global fetch against read-only getter restrictions in iframe/browser environments
+            try {
+                var currentFetch = window.fetch ? window.fetch.bind(window) : null;
+                var proto = window;
+                var desc = null;
+                while (proto) {
+                    desc = Object.getOwnPropertyDescriptor(proto, 'fetch');
+                    if (desc) break;
+                    proto = Object.getPrototypeOf(proto);
+                }
+                if (!desc || !desc.set || !desc.writable) {
+                    Object.defineProperty(window, 'fetch', {
+                        get: function() { return currentFetch; },
+                        set: function(fn) { currentFetch = fn; },
+                        configurable: true,
+                        enumerable: true
+                    });
+                }
+            } catch (e) {
+                try {
+                    var _f = window.fetch;
+                    Object.defineProperty(window, 'fetch', {
+                        value: _f,
+                        writable: true,
+                        configurable: true,
+                        enumerable: true
+                    });
+                } catch (_) {}
+            }
+
+            // 2. Safeguard WebSocket for Vite HMR in proxy/iframe environment (prevents "send was called before connect" & WebSocket issues)
+            if (typeof window !== 'undefined') {
+                try {
+                    var OrigWS = window.WebSocket;
+                    var SafeWS = function(url, protocols) {
+                        var isHmr = (protocols && (protocols === 'vite-hmr' || (Array.isArray(protocols) && protocols.indexOf('vite-hmr') !== -1))) ||
+                                    (typeof url === 'string' && (url.indexOf('vite-hmr') !== -1 || url.indexOf(':3000') !== -1));
+                        
+                        var listeners = {};
+                        var socket = {
+                            readyState: 1, // WebSocket.OPEN
+                            url: url,
+                            protocol: 'vite-hmr',
+                            send: function() {},
+                            close: function() {},
+                            addEventListener: function(type, fn) {
+                                if (!listeners[type]) listeners[type] = [];
+                                listeners[type].push(fn);
+                                if (type === 'open') {
+                                    setTimeout(function() {
+                                        try {
+                                            var evt = typeof Event === 'function' ? new Event('open') : { type: 'open' };
+                                            fn.call(socket, evt);
+                                        } catch(e) {}
+                                    }, 0);
+                                }
+                            },
+                            removeEventListener: function(type, fn) {
+                                if (listeners[type]) {
+                                    listeners[type] = listeners[type].filter(function(f) { return f !== fn; });
+                                }
+                            },
+                            dispatchEvent: function(evt) {
+                                var fns = listeners[evt.type] || [];
+                                for (var i = 0; i < fns.length; i++) {
+                                    try { fns[i].call(socket, evt); } catch(e) {}
+                                }
+                                return true;
+                            }
+                        };
+
+                        if (!isHmr && OrigWS) {
+                            try {
+                                return protocols !== undefined ? new OrigWS(url, protocols) : new OrigWS(url);
+                            } catch (e) {
+                                return socket;
+                            }
+                        }
+
+                        // Trigger synthetic open immediately so Vite client marks isConnected = true
+                        setTimeout(function() {
+                            try {
+                                if (typeof socket.onopen === 'function') {
+                                    socket.onopen({ type: 'open' });
+                                }
+                                var openEvt = typeof Event === 'function' ? new Event('open') : { type: 'open' };
+                                socket.dispatchEvent(openEvt);
+                            } catch (e) {}
+                        }, 0);
+
+                        return socket;
+                    };
+                    if (OrigWS) {
+                        SafeWS.prototype = OrigWS.prototype;
+                        SafeWS.CONNECTING = OrigWS.CONNECTING || 0;
+                        SafeWS.OPEN = OrigWS.OPEN || 1;
+                        SafeWS.CLOSING = OrigWS.CLOSING || 2;
+                        SafeWS.CLOSED = OrigWS.CLOSED || 3;
+                    }
+                    window.WebSocket = SafeWS;
+                } catch (e) {}
+            }
+
+            // 3. Filter console.error per environment constraints ("HMR: Disabled. Ignore WebSocket errors.")
+            if (typeof console !== 'undefined' && console.error) {
+                var _origConsoleError = console.error;
+                console.error = function() {
+                    var args = Array.prototype.slice.call(arguments);
+                    var fullText = args.map(function(a) { return String(a || ''); }).join(' ');
+                    if (
+                        fullText.indexOf("send was called before connect") !== -1 ||
+                        fullText.indexOf("Failed to reload") !== -1 ||
+                        fullText.indexOf("reading 'send'") !== -1 ||
+                        fullText.indexOf("WebSocket") !== -1 ||
+                        fullText.indexOf("websocket") !== -1 ||
+                        fullText.indexOf("vite:invalidate") !== -1 ||
+                        fullText.indexOf("@vite/client") !== -1
+                    ) {
+                        return;
+                    }
+                    return _origConsoleError.apply(console, args);
+                };
+            }
+
+            // 4. Suppress spurious unhandled errors from Vite client HMR
+            window.addEventListener('error', function(event) {
+                var msg = event && event.message ? String(event.message) : '';
+                var file = event && event.filename ? String(event.filename) : '';
+                if (
+                    msg.indexOf("send was called before connect") !== -1 ||
+                    msg.indexOf("Failed to reload") !== -1 ||
+                    msg.indexOf("reading 'send'") !== -1 ||
+                    msg.indexOf("WebSocket") !== -1 ||
+                    file.indexOf("@vite/client") !== -1
+                ) {
+                    event.preventDefault();
+                    if (event.stopImmediatePropagation) event.stopImmediatePropagation();
+                    return true;
+                }
+            }, true);
+
+            window.addEventListener('unhandledrejection', function(event) {
+                var reason = event && event.reason ? String(event.reason.message || event.reason) : '';
+                if (
+                    reason.indexOf("send was called before connect") !== -1 ||
+                    reason.indexOf("Failed to reload") !== -1 ||
+                    reason.indexOf("reading 'send'") !== -1 ||
+                    reason.indexOf("WebSocket") !== -1 ||
+                    reason.indexOf("@vite/client") !== -1
+                ) {
+                    event.preventDefault();
+                    if (event.stopImmediatePropagation) event.stopImmediatePropagation();
+                }
+            }, true);
+        })();
+    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Duyar Real Estate 2.2</title>
+    <meta name="description" content="A high-end real estate and property rental application with glassmorphism UI, search grounding, and advanced filtering.">
+    <meta property="og:title" content="Duyar Real Estate 2.2">
+    <meta property="og:description" content="A high-end real estate and property rental application with glassmorphism UI, search grounding, and advanced filtering.">
+    <meta property="og:image" content="/duyar-symbol.png">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Duyar Real Estate Platform">
+    <meta name="twitter:description" content="Premier real estate & resident super app in Bangladesh.">
+    <meta name="twitter:image" content="/duyar-symbol.png">
+
+    <!-- PWA & Mobile Web App Capabilities -->
+    <meta name="theme-color" content="#0a1211">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Duyar">
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+    <link rel="icon" type="image/svg+xml" href="/icon.svg">
+    <link rel="icon" type="image/png" sizes="192x192" href="/pwa-192x192.png">
+    <link rel="manifest" href="/manifest.json">
+    
+    <!-- Preconnect to critical domains for faster asset retrieval -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://unpkg.com">
+    <link rel="dns-prefetch" href="https://bulksmsbd.net">
+    
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@600;700&display=swap" rel="stylesheet">
+    
+    <!-- Leaflet Core -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
+    
+    <!-- Leaflet MarkerCluster -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css" />
+    <script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
+    <script>
+        // Safeguard Leaflet DomUtil to prevent uncaught TypeError _leaflet_pos on detached/animating nodes
+        (function() {
+            if (window.L && window.L.DomUtil) {
+                var origGetPos = window.L.DomUtil.getPosition;
+                window.L.DomUtil.getPosition = function(el) {
+                    if (!el) return new window.L.Point(0, 0);
+                    try {
+                        return origGetPos ? origGetPos.call(this, el) : (el._leaflet_pos || new window.L.Point(0, 0));
+                    } catch(e) {
+                        return new window.L.Point(0, 0);
+                    }
+                };
+                var origSetPos = window.L.DomUtil.setPosition;
+                window.L.DomUtil.setPosition = function(el, point) {
+                    if (!el) return;
+                    try {
+                        if (origSetPos) origSetPos.call(this, el, point);
+                        else el._leaflet_pos = point;
+                    } catch(e) {}
+                };
+            }
+        })();
+    </script>
+    
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#13ecda",
+                        "background-dark": "#0a1211",
+                        "card-bg": "rgba(16, 34, 32, 0.75)",
+                    },
+                    fontFamily: {
+                        "display": ["Plus Jakarta Sans", "sans-serif"],
+                        "bengali": ["Hind Siliguri", "sans-serif"]
+                    },
+                },
+            },
+        }
+    </script>
+    <style>
+        .glass {
+            background: rgba(16, 34, 32, 0.8);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            /* GPU Acceleration for Backdrop Filters */
+            transform: translateZ(0);
+            will-change: backdrop-filter;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            /* Force GPU layer */
+            transform: translateZ(0);
+            backface-visibility: hidden;
+        }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        body { background-color: #0a1211; }
+        
+        #home-map { 
+            height: 100%; 
+            width: 100%; 
+            z-index: 1; 
+            background: #0a1211;
+        }
+        /* Removed .leaflet-tile-pane filter to fix black map issue */
+        
+        .custom-div-icon {
+            background: none;
+            border: none;
+        }
+        .marker-pin {
+            width: 30px;
+            height: 30px;
+            border-radius: 50% 50% 50% 0;
+            background: #13ecda;
+            position: absolute;
+            transform: rotate(-45deg);
+            left: 50%;
+            top: 50%;
+            margin: -15px 0 0 -15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 10px rgba(19, 236, 218, 0.5);
+        }
+        .marker-pin::after {
+            content: '';
+            width: 14px;
+            height: 14px;
+            margin: 0;
+            background: #0a1211;
+            position: absolute;
+            border-radius: 50%;
+        }
+
+        @keyframes location-bip {
+            0% { transform: scale(0.1); opacity: 0.8; }
+            50% { opacity: 0.4; }
+            100% { transform: scale(3.5); opacity: 0; }
+        }
+        .bip-ring {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(19, 236, 218, 0.4);
+            animation: location-bip 2s cubic-bezier(0, 0.2, 0.8, 1) infinite;
+            pointer-events: none;
+        }
+        .bip-ring:nth-child(2) { animation-delay: 0.6s; }
+        .bip-ring:nth-child(3) { animation-delay: 1.2s; }
+
+        /* Duyar High-End Marker Cluster Styling */
+        .duyar-custom-cluster {
+            background: none !important;
+            border: none !important;
+        }
+        .leaflet-cluster-spider-leg {
+            stroke: #13ecda !important;
+            stroke-width: 2px !important;
+            stroke-dasharray: 4, 3;
+            opacity: 0.85 !important;
+            filter: drop-shadow(0 0 4px rgba(19, 236, 218, 0.6));
+        }
+        /* In-App Alert Toast Gentle Glowing & Pulsing Keyframes */
+        @keyframes toast-glow-pulse-teal {
+            0%, 100% {
+                box-shadow: 0 0 14px rgba(19, 236, 218, 0.25), 0 12px 32px rgba(0, 0, 0, 0.7);
+                border-color: rgba(19, 236, 218, 0.4);
+            }
+            50% {
+                box-shadow: 0 0 28px rgba(19, 236, 218, 0.65), 0 0 55px rgba(19, 236, 218, 0.28), 0 14px 36px rgba(0, 0, 0, 0.85);
+                border-color: rgba(19, 236, 218, 0.85);
+            }
+        }
+
+        @keyframes toast-glow-pulse-emerald {
+            0%, 100% {
+                box-shadow: 0 0 14px rgba(16, 185, 129, 0.25), 0 12px 32px rgba(0, 0, 0, 0.7);
+                border-color: rgba(16, 185, 129, 0.4);
+            }
+            50% {
+                box-shadow: 0 0 28px rgba(16, 185, 129, 0.65), 0 0 55px rgba(16, 185, 129, 0.28), 0 14px 36px rgba(0, 0, 0, 0.85);
+                border-color: rgba(16, 185, 129, 0.85);
+            }
+        }
+
+        @keyframes toast-icon-ping-subtle {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.08);
+            }
+        }
+
+        @keyframes toast-ambient-beam {
+            0% {
+                transform: translateX(-120%) rotate(25deg);
+            }
+            100% {
+                transform: translateX(220%) rotate(25deg);
+            }
+        }
+
+        @keyframes toast-glow-pulse-amber {
+            0%, 100% {
+                box-shadow: 0 0 14px rgba(245, 158, 11, 0.25), 0 12px 32px rgba(0, 0, 0, 0.7);
+                border-color: rgba(245, 158, 11, 0.4);
+            }
+            50% {
+                box-shadow: 0 0 28px rgba(245, 158, 11, 0.7), 0 0 55px rgba(245, 158, 11, 0.3), 0 14px 36px rgba(0, 0, 0, 0.85);
+                border-color: rgba(245, 158, 11, 0.9);
+            }
+        }
+
+        .toast-glow-teal {
+            animation: toast-glow-pulse-teal 2.4s ease-in-out infinite;
+        }
+
+        .toast-glow-emerald {
+            animation: toast-glow-pulse-emerald 2.4s ease-in-out infinite;
+        }
+
+        .toast-glow-amber {
+            animation: toast-glow-pulse-amber 2.4s ease-in-out infinite;
+        }
+
+        .toast-icon-pulse {
+            animation: toast-icon-ping-subtle 2.4s ease-in-out infinite;
+        }
+
+        .toast-shimmer-beam {
+            position: absolute;
+            top: -60%;
+            left: -60%;
+            width: 220%;
+            height: 220%;
+            background: linear-gradient(
+                90deg,
+                transparent 0%,
+                rgba(255, 255, 255, 0.03) 45%,
+                rgba(19, 236, 218, 0.1) 50%,
+                rgba(255, 255, 255, 0.03) 55%,
+                transparent 100%
+            );
+            pointer-events: none;
+            animation: toast-ambient-beam 4.5s ease-in-out infinite;
+        }
+    </style>
+<link rel="stylesheet" href="/index.css">
+</head>
+<body class="font-display text-white antialiased selection:bg-primary/30">
+    <div id="root"></div>
+    <script type="module" src="/index.tsx"></script>
+    <!-- Duyar PWA Service Worker: Has SW, Has Logic, Periodic Sync, Background Sync, Push Notifications, Offline Support -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+                navigator.serviceWorker.register('/sw.js', { scope: '/' })
+                    .then(function(reg) {
+                        console.log('[Duyar SW] Active with scope:', reg.scope);
+                        if ('sync' in reg) {
+                            reg.sync.register('sync-offline-actions').catch(function() {});
+                        }
+                        if ('periodicSync' in reg && navigator.permissions && navigator.permissions.query) {
+                            navigator.permissions.query({ name: 'periodic-background-sync' }).then(function(status) {
+                                if (status.state === 'granted') {
+                                    reg.periodicSync.register('periodic-property-updates', {
+                                        minInterval: 12 * 60 * 60 * 1000
+                                    }).catch(function() {});
+                                }
+                            }).catch(function() {});
+                        }
+                    })
+                    .catch(function(err) {
+                        console.warn('[Duyar SW] Registration note:', err);
+                    });
+            });
+        }
+    </script>
+</body>
+</html>

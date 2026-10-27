@@ -1,0 +1,32 @@
+{
+  "packageId": "com.duyar.app",
+  "host": "duyar.vercel.app",
+  "name": "Duyar Real Estate & Super App",
+  "launcherName": "Duyar",
+  "display": "standalone",
+  "themeColor": "#0a1211",
+  "navigationColor": "#0a1211",
+  "backgroundColor": "#0a1211",
+  "enableNotifications": true,
+  "startUrl": "/",
+  "iconUrl": "/pwa-512x512.png",
+  "maskableIconUrl": "/pwa-maskable-512x512.png",
+  "appVersionName": "1.0.0",
+  "appVersionCode": 1,
+  "shortcuts": [
+    {
+      "name": "Browse Properties",
+      "shortName": "Explore",
+      "url": "/",
+      "icon": "/pwa-192x192.png"
+    },
+    {
+      "name": "Post Property Ad",
+      "shortName": "Post Ad",
+      "url": "/",
+      "icon": "/pwa-192x192.png"
+    }
+  ],
+  "webManifestUrl": "https://duyar.vercel.app/manifest.json",
+  "generatorApp": "bubblewrap-cli"
+}
