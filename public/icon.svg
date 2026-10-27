@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0a1211" />
+      <stop offset="50%" stop-color="#102220" />
+      <stop offset="100%" stop-color="#08100f" />
+    </linearGradient>
+    <linearGradient id="primaryGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#13ecda" />
+      <stop offset="100%" stop-color="#00b4d8" />
+    </linearGradient>
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="8" stdDeviation="16" flood-color="#13ecda" flood-opacity="0.35"/>
+    </filter>
+  </defs>
+
+  <!-- Background with rounded squircle -->
+  <rect width="512" height="512" rx="112" fill="url(#bgGrad)" />
+  <rect width="508" height="508" x="2" y="2" rx="110" fill="none" stroke="#13ecda" stroke-opacity="0.25" stroke-width="3" />
+
+  <!-- Core Emblem / Modern Duyar Real Estate Home & Portal -->
+  <g transform="translate(256, 256) scale(1.15)" filter="url(#glow)">
+    <!-- Stylized Roof & Pin -->
+    <path d="M0 -115 L105 -25 L80 -25 L80 95 L25 95 L25 25 L-25 25 L-25 95 L-80 95 L-80 -25 L-105 -25 Z" 
+          fill="url(#primaryGrad)" />
+    <!-- Doorway / Portal (Duyar) -->
+    <rect x="-20" y="25" width="40" height="70" rx="6" fill="#0a1211" stroke="#13ecda" stroke-width="4" stroke-opacity="0.8" />
+    <!-- Chimney / Modern Skylight Accent -->
+    <polygon points="50,-65 72,-46 72,-85 50,-85" fill="#13ecda" fill-opacity="0.85" />
+    <!-- Keyhole / Glow Center Accent -->
+    <circle cx="0" cy="55" r="5" fill="#13ecda" />
+  </g>
+  
+  <!-- Subtle App Brand Label -->
+  <text x="256" y="445" text-anchor="middle" fill="#13ecda" font-family="'Plus Jakarta Sans', system-ui, sans-serif" font-size="34" font-weight="800" letter-spacing="4">DUYAR</text>
+</svg>
