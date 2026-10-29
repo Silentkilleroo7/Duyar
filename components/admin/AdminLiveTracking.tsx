@@ -1,5 +1,5 @@
-
 import React from 'react';
+import ProviderAvatar from '../ProviderAvatar';
 
 interface Props {
   onBack: () => void;
@@ -37,7 +37,7 @@ const AdminLiveTracking: React.FC<Props> = ({ onBack, onSupport }) => {
 
       {/* Main Map Area */}
       <div className="relative flex-1 w-full bg-[#0a1514]">
-        <div className="absolute inset-0 bg-cover bg-center opacity-60 brightness-50 contrast-125" style={{backgroundImage: 'url("https://lh3.googleusercontent.com/aida-public/AB6AXuBlIjU6uQ5kHV291D0Wvznjl3oz4_dhZAdn2YJ_xVoWy9NEDjczntpuFaBDoKro9X5DZ5zqoHO-RnCjK5EKcQUBWhgGCjkdTrPpHpTRmrR3u6Fp-cx0QDX0QIvNu-P4f8-ICZOZJsx-datBwEoL7lXrke7KDuOZNEHCdoNyaxcvsTNIghFac5fSvS-6yIAFoEYCuQcxXHCIyVGXxCehiR71fASEW9Lvz5sMwpyobR8QP-i4BZfC5opAlZ2I8Dp0DdsdAIVCztzxmg8")'}}></div>
+        <div className="absolute inset-0 bg-cover bg-center opacity-60 brightness-50 contrast-125" style={{backgroundImage: 'url("")'}}></div>
         
         {/* Map Overlay Controls */}
         <div className="absolute right-4 top-1/2 -translate-y-1/2 flex flex-col gap-3 z-10">
@@ -61,7 +61,7 @@ const AdminLiveTracking: React.FC<Props> = ({ onBack, onSupport }) => {
             </div>
           </div>
           <div className="mt-3 glass-panel px-4 py-1.5 rounded-full border border-primary/40 backdrop-blur-xl">
-            <span className="text-[10px] font-black text-primary uppercase tracking-[0.2em] italic">Ariful Islam</span>
+            <span className="text-[10px] font-black text-primary uppercase tracking-[0.2em] italic">Field Specialist</span>
           </div>
         </div>
       </div>
@@ -75,13 +75,16 @@ const AdminLiveTracking: React.FC<Props> = ({ onBack, onSupport }) => {
 
           <div className="flex px-8 py-4 items-center justify-between border-b border-white/5">
             <div className="flex items-center gap-4">
-              <div className="relative">
-                <div className="size-16 rounded-3xl bg-cover bg-center border-2 border-primary/30 shadow-2xl" style={{backgroundImage: 'url("https://lh3.googleusercontent.com/aida-public/AB6AXuBu25oQXxZ83-TbEB_PFsC1bvCMxFP3q8aP28c3ed29aE2E5dUHwzSfa0hSI7wlBqYFyR-jcOfVBU1Yhpttp_7vyblUD5OWhBJsfLmoKDg-7QrSSUKpqKdNkEV4hmmy-Th_UMpJ1RK1gscsaCoTLt0LGU6rlm3vbBRhRWInQnwTjS0IuTOav1fDXcDj8vZ_ysg7fbcj2GgSX6uSirO13tLCKvu8uWe7q0EAA34uOemZLccB2_QhuOzKNyi28aeWRTKzybN_tx6kMpc")'}}></div>
-                <div className="absolute bottom-[-2px] right-[-2px] size-5 rounded-full bg-emerald-500 border-4 border-[#102220] shadow-[0_0_10px_rgba(16,185,129,0.4)]"></div>
-              </div>
+              <ProviderAvatar 
+                name="Dispatched Specialist"
+                category="Maintenance"
+                size="lg"
+                isOnline={true}
+                showOnlineDot={true}
+              />
               <div>
-                <p className="text-white text-xl font-black italic tracking-tighter leading-tight uppercase">Ariful Islam</p>
-                <p className="text-white/40 text-[10px] font-black uppercase tracking-widest mt-1">Provider ID: #99021</p>
+                <p className="text-white text-xl font-black italic tracking-tighter leading-tight uppercase">Dispatched Specialist</p>
+                <p className="text-white/40 text-[10px] font-black uppercase tracking-widest mt-1">Specialist ID: #99021</p>
               </div>
             </div>
             <div className="text-right">

@@ -73,7 +73,7 @@ const AdminWallet: React.FC<Props> = ({ onBack, onRechargeApproval, onPayouts })
           <div className="flex w-full flex-col gap-5 glass p-6 rounded-[2.5rem] border border-primary/20 relative overflow-hidden bg-primary/5 shadow-2xl">
             <div className="absolute top-[-20%] right-[-10%] size-32 bg-primary/10 rounded-full blur-3xl"></div>
             <div className="flex gap-5 relative z-10">
-              <div className="bg-center bg-no-repeat aspect-square bg-cover rounded-[1.5rem] h-20 w-20 border-4 border-[#0d1a19] shadow-2xl shrink-0" style={{backgroundImage: 'url("https://lh3.googleusercontent.com/aida-public/AB6AXuAxIJ43AYNz6jYU9mgP6A_cYGqyNM8ijytCDVVyZGee-7l6GGauDhMcWoF0M9NXIptNoMlootVyAMZEykkVHk3xSwJiazRdnJ1n5ZQhbINOA10J09Ybu19amEg0kFwqvT0lAB_VOG0yI4ZvswGeLevUN_ToDSiha7ZWaVnmXgSFYM7jvwFCQ32IiheOfZeMTj_OUbpf4eymBXS3B8mmlzNUK9gdKeBq7lTqdn_Kbb3lq0ZMkF8uzMwR4DanBPXECi_kBB7SGBQ0Yy8")'}}></div>
+              <div className="bg-center bg-no-repeat aspect-square bg-cover rounded-[1.5rem] h-20 w-20 border-4 border-[#0d1a19] shadow-2xl shrink-0" style={{backgroundImage: 'url("")'}}></div>
               <div className="flex flex-col justify-center min-w-0">
                 <div className="flex items-center gap-2">
                   <p className="text-white text-2xl font-black italic tracking-tighter uppercase truncate leading-none">John Doe</p>

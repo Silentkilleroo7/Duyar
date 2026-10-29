@@ -228,7 +228,7 @@ const AdminDashboard: React.FC<Props> = ({ onBack, onNavigate }) => {
             <button onClick={() => onNavigate(Screen.ADMIN_LIVE_TRACKING)} className="text-primary text-[10px] font-black uppercase tracking-widest">Detail View</button>
           </div>
           <div onClick={() => onNavigate(Screen.ADMIN_LIVE_TRACKING)} className="relative w-full aspect-video rounded-3xl overflow-hidden glass-card border border-white/10 cursor-pointer group active:scale-98 transition-all">
-            <div className="w-full h-full bg-center bg-no-repeat bg-cover opacity-60 transition-transform duration-700 group-hover:scale-110" style={{backgroundImage: 'url("https://lh3.googleusercontent.com/aida-public/AB6AXuAALhSASALVeJwUXJqt25CQHY8XYyk8jkAwYWFkSxsD6p6sSvymnCqDV62cD5_NiCppH9nMVMnlyNomQ2sg_YCd9EIjK0aV42V4GT-1OURu8xRgZOGFmIwtZabZ8pvNjXhkRSVjk6LZHDQIlOU7rTQeJcTMF2HX4-6esmKeODdx47OlNDrVsmgCsN5BMMA28b8nzJDBMzPt0javDWcBgYYWvoQcQScu2DhBgF5xOZNeUkqedWSLRzQ2GJZNuNgNextiJ8xw1O6y5Go")'}}></div>
+            <div className="w-full h-full bg-center bg-no-repeat bg-cover opacity-60 transition-transform duration-700 group-hover:scale-110" style={{backgroundImage: 'url("")'}}></div>
             <div className="absolute top-4 left-4 p-2 glass-panel rounded-lg text-[9px] font-black uppercase tracking-widest flex gap-2 items-center border border-primary/20">
               <span className="flex h-2 w-2 rounded-full bg-primary animate-pulse shadow-[0_0_8px_rgba(19,236,218,0.6)]"></span> 12 Providers Online
             </div>

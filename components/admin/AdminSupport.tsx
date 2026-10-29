@@ -53,7 +53,7 @@ const AdminSupport: React.FC<Props> = ({ onBack }) => {
           {/* Chat Thread Fragment */}
           <div className="space-y-6 mb-10 relative z-10">
             <div className="flex gap-4">
-              <div className="size-10 rounded-2xl bg-slate-800 shrink-0 bg-cover bg-center border border-white/10" style={{backgroundImage: "url('https://lh3.googleusercontent.com/aida-public/AB6AXuDiSi4x7NEh9kzrPSkx9XWj0nsA3IZNWygLb06fgaVnGLw_4r4wsTQoZ0A8vObx84yH0kN_BL7PlS5-zsrA3-05knPdkz-92jl8ECUvxag_BJAzaki0wcmV-gwcZZzW5fHdo0Wl_DceW27Qdk0ktm4AVvRypwhE4ObpozFs8I9yigH1wHEymiYj_JgaacJfF1qMyYZ579RWywTDa1GsFN1XAuhBTURqUzS2VJWUM0-kxgitX_EYZZ68xQCjyGRDv4QXDJrUiCAp3s')"}}></div>
+              <div className="size-10 rounded-2xl bg-slate-800 shrink-0 bg-cover bg-center border border-white/10" style={{backgroundImage: "url('')"}}></div>
               <div className="bg-white/5 border border-white/5 rounded-[1.5rem] rounded-tl-none p-4 text-xs font-medium text-white/90 leading-relaxed shadow-xl">
                 I tried to upgrade my plan today but the transaction keeps failing. I've tried two different cards.
                 <p className="text-[8px] text-white/20 font-black uppercase tracking-widest mt-2 italic text-right">12:45 PM</p>

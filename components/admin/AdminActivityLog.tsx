@@ -68,7 +68,7 @@ const AdminActivityLog: React.FC<Props> = ({ onBack }) => {
           <div className="glass p-6 rounded-[2.5rem] flex flex-col gap-5 border-primary/20 bg-primary/5 shadow-2xl relative overflow-hidden animate-in fade-in duration-500">
             <div className="flex items-center justify-between relative z-10">
               <div className="flex items-center gap-4">
-                <div className="size-12 rounded-2xl bg-center bg-cover border-2 border-primary/30 shadow-xl" style={{backgroundImage: "url('https://lh3.googleusercontent.com/aida-public/AB6AXuA1IMWrFm2E0mw2t6EKr9DRd71tVe-75TC3XRaQXVZHUas3KnPIgGBAL8cQvm7bZMpyLElFfgwEkp2EUH7X8tIS8Y_1ZNPzl9UyMllfZQufQronJjv7fxzANUsjQpj4wV8eXLZuNcGBQztNZ4etVJ3Sxnxdi6ACS7tKr09GgbX9SRcKEDWUgeHaJ_kDnuF3j9UlJ7OVkwAJ6dTyUllk4Vcvy_Emf9OZf6Pbr86kgT8K3MimqToCPk8uJwsSXPq4YXg4bLG9lOq8W_k')"}}></div>
+                <div className="size-12 rounded-2xl bg-center bg-cover border-2 border-primary/30 shadow-xl" style={{backgroundImage: "url('')"}}></div>
                 <div>
                   <p className="text-white text-sm font-black uppercase italic tracking-tighter leading-none">Mike Ross</p>
                   <p className="text-white/30 text-[9px] font-black uppercase tracking-widest mt-1.5 italic">Finance Manager</p>
@@ -113,7 +113,7 @@ const AdminActivityLog: React.FC<Props> = ({ onBack }) => {
           <div className="glass p-5 rounded-[2rem] flex flex-col gap-4 border border-white/5 bg-white/[0.01] hover:bg-white/[0.03] transition-all cursor-pointer group active:scale-98 shadow-xl animate-in fade-in duration-700 delay-100">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="size-10 rounded-xl bg-center bg-cover border border-white/10 grayscale group-hover:grayscale-0 transition-all shadow-lg" style={{backgroundImage: "url('https://lh3.googleusercontent.com/aida-public/AB6AXuCzWZmwfWO9M_6tr0k8WqUOLAfGAWP2YA4Du4-86MZbeiYiQowjHvuF_k_OyoeKkYyJRz3Bnw21fMfRkXwMWLrPE2H8d8kBaOQC-Pdh5bXQ82IcF0gZQn6SAElVTnHSe877baibqO3onPJ36aolZrxmB31mTypo5uJZsYXRZhvJgHslpHzqHsej8xeyY9hy0WRmYMrvTqKjk82hvA2CCHovawhXaSbdP1_ygP8Y0_eRgOMYiBpa2Wld5_Yc50CSGdWwNVrJizA4Lf4')"}}></div>
+                <div className="size-10 rounded-xl bg-center bg-cover border border-white/10 grayscale group-hover:grayscale-0 transition-all shadow-lg" style={{backgroundImage: "url('')"}}></div>
                 <div>
                   <p className="text-white text-xs font-black uppercase italic tracking-tighter">Sarah Jenkins</p>
                   <p className="text-white/20 text-[8px] font-black uppercase tracking-[0.2em] italic">Senior Mod</p>
