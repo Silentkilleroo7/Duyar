@@ -11,7 +11,7 @@ interface Props {
 
 const LocatorDashboard: React.FC<Props> = ({ onBack, onPostAd, userProfile }) => {
   const locatorName = userProfile?.full_name || 'Alex Sterling';
-  const locatorAvatar = userProfile?.avatar_url || 'https://lh3.googleusercontent.com/aida-public/AB6AXuDFtey0SrTueToR1BwWZbRKzciO96qP6YFmN-SvIJht45_c9o9oSIv7K-blSAMuJlD-nSTgnTrVH2dTz6vSPPBj0WVPS3ft2Ur8TW4B4QKLrXKQlFvXDiooGvL49l7V59jF_6RKpQi4MXLm4t6nQs_es3coiHAgf1m8BC_QCBLtW_jZ1xqoaQKFDBSY4LKHtFI6v0KlZAm85VsQlSWaPpG5DHw5vSVAvE_OHAtmARpbpKoV1COhyUM3wivZdsJTfj0yndNmjS8j3kg';
+  const locatorAvatar = userProfile?.avatar_url || '';
 
   const [activeAlerts, setActiveAlerts] = useState<SearchAlert[]>([]);
   const [postedLocatorProperties, setPostedLocatorProperties] = useState<any[]>([]);

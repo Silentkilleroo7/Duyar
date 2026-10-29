@@ -61,7 +61,7 @@ const SecurityGuardDashboard: React.FC<Props> = ({ onBack, onSOS, userProfile })
             <span className="material-symbols-outlined">arrow_back</span>
           </button>
           <div className="size-11 rounded-full border-2 border-primary/40 overflow-hidden shadow-xl">
-            <div className="h-full w-full bg-center bg-cover" style={{backgroundImage: `url("${userProfile?.avatar_url || 'https://lh3.googleusercontent.com/aida-public/AB6AXuDtc14JSeV6-HwPDbyy9uahtw-s_2ttD10FGuqPki7p_L8PGZG8LeIx7sUti2krg9jg1jPNvsYddeuPWJVKCyFf4mGVjmXqD3bkyvxW-o5Yuv1Nyt9MMpmbZUledATpUuQpyNZqdGyQoQFdyBhhkxWb4TgyFJEdOzGxvlc4PBBV2ZMMUbHAKFUJcjvKyUEIIPw2aBzDRimU3eA339ShDh8B06M_eA5KdGaFfZJS2Jl5KEkk7XP5_yzjQC-wQqOO4SWfVnrOK1BhUiw'}")`}}></div>
+            <div className="h-full w-full bg-center bg-cover" style={{backgroundImage: `url("${userProfile?.avatar_url || ''}")`}}></div>
           </div>
           <div>
             <h1 className="text-sm font-black italic tracking-tight text-white uppercase leading-none">{guardName}</h1>
@@ -192,7 +192,7 @@ const SecurityGuardDashboard: React.FC<Props> = ({ onBack, onSOS, userProfile })
           </div>
           
           <div className="glass-card rounded-[2.5rem] overflow-hidden border border-white/10 shadow-2xl relative">
-            <div className="relative h-56 w-full bg-cover bg-center grayscale contrast-125" style={{backgroundImage: 'url("https://lh3.googleusercontent.com/aida-public/AB6AXuD49h1l58NXfvkaTE615L5TC-gFdui6z7E7DokLFnvnYJVzCSpQ360tyWRosO8XeLizKNok0dszZSyhyxTDoJBlbC0J5O8mpg-4YARyUWPEIebVqdZBgoYrxlbHdh334oigY1JRiBKHQT6dZTffSdng3wIdRbGBEI6U8uOmQZX5U8SVYlObgLWpu9nxPXnPcK59L5QLfq6vNBUcA6FVuco41ywPXNV3M0HuMUzbxC0DHf3gkx-StiGxVwyJzWranXL0KUJo9brGhsA")'}}>
+            <div className="relative h-56 w-full bg-cover bg-center grayscale contrast-125" style={{backgroundImage: 'url("")'}}>
               <div className="absolute inset-0 bg-gradient-to-t from-background-dark via-transparent to-transparent opacity-90"></div>
               <div className="absolute bottom-5 left-6">
                 <div className="bg-primary/90 backdrop-blur-xl text-background-dark text-[9px] px-3 py-1 rounded-full uppercase font-black tracking-[0.2em] mb-2 shadow-xl inline-block">

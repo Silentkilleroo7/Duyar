@@ -60,7 +60,7 @@ const MaidDashboard: React.FC<Props> = ({ onBack, userProfile }) => {
             <span className="material-symbols-outlined">arrow_back</span>
           </button>
           <div className="size-11 rounded-full border-2 border-primary/30 p-0.5 overflow-hidden shadow-lg">
-            <div className="w-full h-full rounded-full bg-cover bg-center" style={{backgroundImage: `url("${userProfile?.avatar_url || 'https://lh3.googleusercontent.com/aida-public/AB6AXuBtIum24irfIPsyzyvxKQTya8s-MG0j3P5Tf6PIv8LU5-96M3fNzBwjXH4ragYz_YsKJH2lmbbfNk8bt4E5YB5IGMHSNKKYfzTM5IUykeSQB3cJpIpse8XU-k0xcGKo6WHBKIfT5JOTkeVp41hd-NOtkjA-iN3eW0bXGplysR-_4PADMMLKDtKpjTahPVO8P1GSXVBz6JG1ibMPDCAUm-Y_g3UkKMjiSTKyxludHLsUr8x2W0kGQuiUOl0lFmSHIo8Mbp9Oh0VsHKA'}")`}}></div>
+            <div className="w-full h-full rounded-full bg-cover bg-center" style={{backgroundImage: `url("${userProfile?.avatar_url || ''}")`}}></div>
           </div>
           <div>
             <h1 className="text-sm font-black italic tracking-tight text-white uppercase leading-none">{maidName}</h1>

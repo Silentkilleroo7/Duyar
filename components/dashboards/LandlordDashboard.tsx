@@ -36,7 +36,7 @@ const LandlordDashboard: React.FC<Props> = ({ onBack, onPostAd, userProfile }) =
           <button onClick={onBack} className="size-10 rounded-full flex items-center justify-center bg-white/5 hover:bg-white/10 transition-colors">
             <span className="material-symbols-outlined">arrow_back</span>
           </button>
-          <div className="size-10 rounded-full border-2 border-primary overflow-hidden bg-cover bg-center" style={{backgroundImage: `url("${userProfile?.avatar_url || 'https://lh3.googleusercontent.com/aida-public/AB6AXuAu6g7x3X_ODaNppEhj5y4I_JY2XmSmfeJ44CmD8q0WnXj0FdmaTsGfxnlTnBXYUW9vEPn5fKFpCRSBwRP0PpvqAjtnumOD-tv_2xifeqJRT5WPYTfPxC3BRliVhj5nnYcH0rtcE3caTBz3sOAE-vR_6FJ6jY5M4GqxBeuqtwk6SF-uXojK7Nr2sp41LU0lEzjoALeWyxDzQ-hhoF1n7QJgf4onK4Uw57NUAm4okUArHeKuydjPu-Osk7IgY8F03o9SiK3JjSq6VMQ'}")`}}></div>
+          <div className="size-10 rounded-full border-2 border-primary overflow-hidden bg-cover bg-center" style={{backgroundImage: `url("${userProfile?.avatar_url || ''}")`}}></div>
           <div>
             <h1 className="text-base font-black tracking-tight uppercase italic text-primary leading-none">{landlordName}</h1>
             <div className="flex items-center gap-1 mt-1">

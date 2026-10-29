@@ -1,7 +1,7 @@
-
 import React, { useState, useEffect, useMemo } from 'react';
 import SmartHomeControl from '../SmartHomeControl';
 import TicketProgressBar from '../TicketProgressBar';
+import ProviderAvatar from '../ProviderAvatar';
 import { haptics } from '../../haptics';
 import {
   MaintenanceTicket,
@@ -14,6 +14,7 @@ import {
   subscribeToMaintenanceTickets,
   resetMaintenanceTicketsToDefault
 } from '../../maintenanceStorage';
+import { calculateDistanceKm, getAreaCoordinates } from '../../proximityDispatcher';
 
 interface Props {
   onBack: () => void;
@@ -165,61 +166,15 @@ const MaintenanceDashboard: React.FC<Props> = ({ onBack, onNavigate, userProfile
         title: t.title,
         statusType: isInProgress ? 'IN_PROGRESS' : 'EN_ROUTE',
         statusLabel: isInProgress ? 'Service In-Progress' : 'Technician En-Route',
-        technician: t.technicianName || 'Ahmed Hassan',
+        technician: t.technicianName || userProfile?.name || 'Assigned Specialist',
         location: t.area || t.address || 'Dhaka',
         eta: isInProgress ? 'Active On-Site' : (t.scheduledTime || 'ETA ~15m'),
         price: t.price
       });
     });
 
-    // Supplementary fleet telemetry so ticker is continuously populated and animated
-    const sampleFleet = [
-      {
-        id: 'fleet-ac',
-        title: 'AC Inverter Gas Refill & Coil Wash',
-        statusType: 'EN_ROUTE' as const,
-        statusLabel: 'Technician En-Route' as const,
-        technician: 'Kawsar Mahmud',
-        location: 'Gulshan-2, Road 71',
-        eta: 'ETA ~12 mins',
-        price: '৳1,800'
-      },
-      {
-        id: 'fleet-elec',
-        title: 'Main Circuit Breaker & Spark Repair',
-        statusType: 'IN_PROGRESS' as const,
-        statusLabel: 'Service In-Progress' as const,
-        technician: 'Ahmed Hassan',
-        location: 'Banani, Block D',
-        eta: 'Work In-Progress (65%)',
-        price: '৳1,250'
-      },
-      {
-        id: 'fleet-plumb',
-        title: 'Under-Sink Pipe Leak & Valve Seal',
-        statusType: 'EN_ROUTE' as const,
-        statusLabel: 'Technician En-Route' as const,
-        technician: 'Md. Faruk Hossain',
-        location: 'Dhanmondi, Road 27',
-        eta: 'ETA ~18 mins',
-        price: '৳950'
-      },
-      {
-        id: 'fleet-appliance',
-        title: 'Refrigerator Compressor Inspection',
-        statusType: 'IN_PROGRESS' as const,
-        statusLabel: 'Service In-Progress' as const,
-        technician: 'Habibur Rahman',
-        location: 'Uttara Sector 7',
-        eta: 'Diagnostics On-Site',
-        price: '৳1,400'
-      }
-    ];
-
-    if (list.length === 0) return sampleFleet;
-    if (list.length < 4) return [...list, ...sampleFleet.slice(0, 4 - list.length)];
     return list;
-  }, [activeTickets]);
+  }, [activeTickets, userProfile]);
 
   const handleTickerItemClick = (item: typeof tickerItems[0]) => {
     haptics.selection();
@@ -256,10 +211,16 @@ const MaintenanceDashboard: React.FC<Props> = ({ onBack, onNavigate, userProfile
           >
             <span className="material-symbols-outlined">arrow_back</span>
           </button>
-          <div className="size-11 rounded-full bg-cover bg-center ring-2 ring-primary/40 p-0.5" style={{backgroundImage: "url('https://lh3.googleusercontent.com/aida-public/AB6AXuCg5jLn7IFO5q0DQqMw2byZIoYVpUCahuq6V12O-BaKd0-ANsqqAq4F4cnBiyjTYa7Ztw02xyKApwfW2A1noIQCBzYcvsHCP9XrYRHAbqPRRZ-Yh3MaskW1wpUyKZ8DjCjrqN8U0yD90ct0f2WgkIZTGmT-7TxtwXB0pB6tea4x-U83DpItXDuCo8GXJCT53VdyMhE-kqkybb6yld9qSwSJezo4k8AOYeH2_aKsln537RJ5RJaVZu27ghc1lOT9ZDmz87js595GruM')"}}></div>
+          <ProviderAvatar 
+            name={userProfile?.name || 'Chief Technician'} 
+            category="Maintenance"
+            size="md"
+            showOnlineDot={true}
+            isOnline={true}
+          />
           <div>
-            <h1 className="text-sm font-black italic tracking-tight text-white uppercase leading-none">Ahmed Hassan</h1>
-            <p className="text-[9px] text-primary uppercase tracking-[0.2em] font-black mt-1.5">Chief Technician</p>
+            <h1 className="text-sm font-black italic tracking-tight text-white uppercase leading-none">{userProfile?.name || 'Chief Technician'}</h1>
+            <p className="text-[9px] text-primary uppercase tracking-[0.2em] font-black mt-1.5">Authorized Specialist</p>
           </div>
         </div>
         
@@ -412,28 +373,38 @@ const MaintenanceDashboard: React.FC<Props> = ({ onBack, onNavigate, userProfile
             </div>
 
             <div className="space-y-2.5">
-              {pendingTickets.map((t) => (
-                <div key={t.id} className="glass-card rounded-2xl p-4 border border-amber-500/30 bg-amber-500/5 space-y-3 shadow-lg">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <h4 className="text-white text-xs font-black uppercase tracking-tight">{t.title}</h4>
-                      <p className="text-[10px] text-white/50 font-bold mt-0.5">📍 {t.address || t.area || 'Dhaka'}</p>
-                      {t.description && (
-                        <p className="text-[10px] text-white/70 italic mt-1 line-clamp-2">"{t.description}"</p>
-                      )}
+              {pendingTickets.map((t) => {
+                const techCoords = { lat: 23.7937, lng: 90.4066 }; // Banani hub
+                const jobCoords = getAreaCoordinates(t.address || t.area || 'Banani');
+                const distKm = calculateDistanceKm(techCoords.lat, techCoords.lng, jobCoords.lat, jobCoords.lng);
+                return (
+                  <div key={t.id} className="glass-card rounded-2xl p-4 border border-amber-500/30 bg-amber-500/5 space-y-3 shadow-lg">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <h4 className="text-white text-xs font-black uppercase tracking-tight">{t.title}</h4>
+                          <span className="text-[9px] font-mono font-bold text-primary px-1.5 py-0.2 rounded bg-primary/10 border border-primary/20">
+                            📍 {distKm} km
+                          </span>
+                        </div>
+                        <p className="text-[10px] text-white/50 font-bold mt-0.5">📍 {t.address || t.area || 'Dhaka'}</p>
+                        {t.description && (
+                          <p className="text-[10px] text-white/70 italic mt-1 line-clamp-2">"{t.description}"</p>
+                        )}
+                      </div>
+                      <span className="text-amber-300 font-black text-xs shrink-0 ml-2">{t.price}</span>
                     </div>
-                    <span className="text-amber-300 font-black text-xs shrink-0 ml-2">{t.price}</span>
+                    <button
+                      type="button"
+                      onClick={() => handleAcceptPendingTicket(t.id)}
+                      className="w-full py-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-black font-black text-[10px] uppercase tracking-wider transition-all active:scale-95 flex items-center justify-center gap-1.5 shadow-md shadow-amber-400/20"
+                    >
+                      <span className="material-symbols-outlined text-sm font-black">handshake</span>
+                      <span>Accept & Assign to Self (📍 {distKm} km away)</span>
+                    </button>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => handleAcceptPendingTicket(t.id)}
-                    className="w-full py-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-black font-black text-[10px] uppercase tracking-wider transition-all active:scale-95 flex items-center justify-center gap-1.5 shadow-md shadow-amber-400/20"
-                  >
-                    <span className="material-symbols-outlined text-sm font-black">handshake</span>
-                    <span>Accept & Assign to Self</span>
-                  </button>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </section>
         )}
@@ -487,7 +458,7 @@ const MaintenanceDashboard: React.FC<Props> = ({ onBack, onNavigate, userProfile
               {/* Card Banner */}
               <div 
                 className="relative h-40 w-full bg-cover bg-center grayscale brightness-75 contrast-125" 
-                style={{backgroundImage: `url('${activeTicket.image || "https://lh3.googleusercontent.com/aida-public/AB6AXuDrulnHgKyC9Fhw3ri4gawWmANt8uMIC5QFIEkiEY7SDX0xOzLw69Q5HYMfhDqKipkVArhX5pLPke2Y75MUvULiQV45q4oOinbWWop8bs2HMnmVCkf882M0OVW8Rsj85DMhYFYiGMGw-jt5GMYwLgAqpiC3Pu53DTNdAQr-H0AxA7m3F3k96ApUrxChDgJDxPJY8lOU49PvaM2hlrU_Eo5rDC90yQaZlub2qBh-CsNiJTbL530yP4vsZ63OB6h6XgfKKKDBdItDOd0"}')`}}
+                style={{backgroundImage: `url('${activeTicket.image || ""}')`}}
               >
                 <div className="absolute inset-0 bg-gradient-to-t from-background-dark via-background-dark/60 to-transparent opacity-95"></div>
                 
@@ -626,9 +597,9 @@ const MaintenanceDashboard: React.FC<Props> = ({ onBack, onNavigate, userProfile
                       id="btn-active-accept-job"
                       onClick={() => {
                         acceptMaintenanceTicket(activeTicket.id, {
-                          name: 'Md. Kabir Hossain',
-                          role: 'Licensed Senior Specialist • 4.9★',
-                          phone: '+880 1712-984512'
+                          name: userProfile?.name || 'Licensed Specialist',
+                          role: 'Licensed Senior Specialist • Verified',
+                          phone: userProfile?.phone || '+880 1712-984512'
                         });
                         showToast('Request Accepted! Status is now ACTIVE • Ready for chat.');
                       }}

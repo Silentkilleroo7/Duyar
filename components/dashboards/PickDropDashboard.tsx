@@ -267,9 +267,7 @@ const PickDropDashboard: React.FC<Props> = ({ onBack, onTrack, userProfile }) =>
                        type="button"
                        onClick={() => {
                          acceptPickDropRequest(request.id, {
-                           name: 'Rakibul Islam',
-                           phone: '+880 1819-234567',
-                           vehicleNo: 'Dhaka Metro-Ta 14-8821'
+                           name: userProfile?.name || 'Verified Logistics Pilot', phone: userProfile?.phone || '+880 1819-234567', vehicleNo: 'Dhaka Metro Verified'
                          });
                          const updated = getActivePickDropRequest();
                          setRequest(updated);
