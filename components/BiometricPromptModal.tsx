@@ -98,7 +98,7 @@ export const BiometricPromptModal: React.FC<Props> = ({
     mode === 'app_access' 
       ? 'Authenticate to unlock Duyar Super App' 
       : mode === 'test' 
-        ? 'Testing platform biometric sensor' 
+        ? 'Verifying device biometric sensor' 
         : 'Confirm secure transaction authorization'
   );
 

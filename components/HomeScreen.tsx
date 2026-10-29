@@ -95,12 +95,9 @@ const HomeScreen: React.FC<Props> = ({
   }, [activeArea]);
 
   useEffect(() => {
-    searchRadiusRef.current = searchRadius;
-  }, [searchRadius]);
-
-  useEffect(() => {
     showRadiusSliderRef.current = showRadiusSlider;
   }, [showRadiusSlider]);
+
 
   // Data State
   const [allDbProperties, setAllDbProperties] = useState<Property[]>([]);
@@ -1082,11 +1079,14 @@ const HomeScreen: React.FC<Props> = ({
         <form onSubmit={handleSearchSubmit} className="flex items-center gap-2 pointer-events-auto">
           <div className="flex-1 relative h-12">
             <div className="absolute inset-0 bg-[#0a1211]/90 backdrop-blur-2xl rounded-full flex items-center px-3 gap-2.5 shadow-[0_8px_30px_rgba(0,0,0,0.6)] border border-[#13ecda]/30 transition-all focus-within:border-[#13ecda] focus-within:ring-2 focus-within:ring-[#13ecda]/20">
-              <div className="size-7 rounded-full overflow-hidden shrink-0 border border-[#13ecda]/50 shadow-[0_0_8px_rgba(19,236,218,0.3)] bg-[#07100f] flex items-center justify-center p-0.5">
+              <div 
+                title="Duyar"
+                className="size-8 shrink-0 flex items-center justify-center select-none"
+              >
                 <img 
                   src="/duyar-symbol.png" 
                   alt="Duyar" 
-                  className="w-full h-full object-cover rounded-full" 
+                  className="w-full h-full object-contain pointer-events-none filter drop-shadow-[0_2px_8px_rgba(19,236,218,0.4)]" 
                 />
               </div>
               <input 

@@ -27,7 +27,7 @@ const TransactionSuccess: React.FC<Props> = ({ recipient, amount, onHome }) => {
         </div>
         <div className="text-center mb-10">
           <p className="text-white/60 text-base font-normal leading-relaxed px-4">
-            Your money has been successfully sent to <span className="text-white font-medium">{recipient?.name || 'Ariful Islam'}</span>.
+            Your money has been successfully sent to <span className="text-white font-medium">{recipient?.name || 'Recipient'}</span>.
           </p>
         </div>
 

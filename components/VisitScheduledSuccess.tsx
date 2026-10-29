@@ -14,7 +14,7 @@ const VisitScheduledSuccess: React.FC<Props> = ({ onHome, onTrack, property }) =
   return (
     <div className="relative flex min-h-screen w-full flex-col bg-background-dark overflow-hidden font-display">
       <div className="absolute inset-0 z-0 opacity-20 pointer-events-none">
-        <div className="w-full h-full bg-center bg-no-repeat bg-cover" style={{backgroundImage: "url('https://lh3.googleusercontent.com/aida-public/AB6AXuBMDdb7yz-zachMCzEgOpxlvePTjUbAkTXJuk-XBKwJABTLCDMtkkQEdD_ne_9fJGEhdspItklzDWDCzSBB3Nyo5xUtd14x12CsSbhncxzR-GyTaBg4dnyNhIUw8P9avg5DScyKxnClKqTvmgWW7SQUYJiFO2yoPGX28iDW6XkY-2hl-W3Mrpm3JjxdeP4N0BijtXsuOdug0QfrvFTsgHQs0t3tzE4Ebb6izb-S-LMqzNO5b6vpsePEZsJahgY8Gxxj4zwU_V8Rs3Q')"}}></div>
+        <div className="w-full h-full bg-center bg-no-repeat bg-cover" style={{backgroundImage: "url('')"}}></div>
       </div>
       
       <div className="relative z-10 flex flex-col h-full px-6 pt-20 pb-10 items-center justify-center flex-1">
@@ -33,7 +33,7 @@ const VisitScheduledSuccess: React.FC<Props> = ({ onHome, onTrack, property }) =
 
         <div className="glass-card rounded-xl p-5 mb-10 w-full border border-white/10 bg-white/5">
           <div className="flex items-center gap-4 mb-4">
-            <div className="w-16 h-16 rounded-lg bg-cover bg-center" style={{backgroundImage: `url("${property?.image || 'https://lh3.googleusercontent.com/aida-public/AB6AXuBt_tIU1VYAKGvGcVMXhhdPbwqjD_cbtCRB4tkdIkHQ3_OwzPgy3wm9odW-3KF6NSc6IgrAUkeLFEERYwbSdJX4jf2_tgaMTOwMabAdospmUPng3pEEvYI1DoKPD1fX5yIHQiR_xpzrWLws6ifjoYuNZReND2sG1pqs_0aJnL1WO7iPJWxJHWUeL065n0Bwk6QdNJGTOFruANP6-BMcCETQXuXWQSfv20zj7dFO_fXRTXBt87U6jrpIXW9IO9BO0enOpMnbTbYJzHw'}")`}}></div>
+            <div className="w-16 h-16 rounded-lg bg-cover bg-center" style={{backgroundImage: `url("${property?.image || ''}")`}}></div>
             <div>
               <p className="text-[#92c9c9] text-xs font-semibold uppercase tracking-widest mb-1">Property</p>
               <p className="text-white text-lg font-bold leading-tight">{property?.title || 'Modern 3BHK Luxury Flat'}</p>

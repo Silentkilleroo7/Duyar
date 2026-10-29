@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { haptics } from '../haptics';
 import { addMaintenanceTicket } from '../maintenanceStorage';
+import { ProximityRadarModal } from './ProximityRadarModal';
+import { RankedProvider } from '../proximityDispatcher';
 
 interface Props {
   onBack: () => void;
@@ -95,6 +97,7 @@ const MaidBooking: React.FC<Props> = ({ onBack, onConfirm, userProfile }) => {
   // Proposed User Price
   const [userPrice, setUserPrice] = useState('1200');
   const [showPreviewModal, setShowPreviewModal] = useState(false);
+  const [showProximityModal, setShowProximityModal] = useState(false);
 
   // Service Location States
   const [serviceLocation, setServiceLocation] = useState({
@@ -1182,41 +1185,110 @@ const MaidBooking: React.FC<Props> = ({ onBack, onConfirm, userProfile }) => {
                   setShowPreviewModal(false);
                   onConfirm();
                 }}
-                className="flex-[1.8] py-3.5 rounded-xl bg-primary text-black font-black text-xs uppercase tracking-widest shadow-[0_0_20px_rgba(19,236,218,0.4)] hover:brightness-110 active:scale-95 transition-all flex items-center justify-center gap-2"
+                className="flex-[1.5] py-3.5 rounded-xl bg-primary text-black font-black text-xs uppercase tracking-widest shadow-[0_0_20px_rgba(19,236,218,0.4)] hover:brightness-110 active:scale-95 transition-all flex items-center justify-center gap-2"
               >
                 <span className="material-symbols-outlined text-base font-black">check_circle</span>
                 <span>CONFIRM & SUBMIT</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowPreviewModal(false);
+                  setShowProximityModal(true);
+                }}
+                className="flex-[1.2] py-3.5 rounded-xl bg-primary/20 text-primary border border-primary/40 font-black text-xs uppercase tracking-wider hover:bg-primary/30 active:scale-95 transition-all flex items-center justify-center gap-1"
+              >
+                <span className="material-symbols-outlined text-base">radar</span>
+                <span>NEAREST</span>
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Footer Action - PROPOSED PRICE & PREVIEW & SUBMIT */}
-      <div className="absolute bottom-0 left-0 right-0 p-6 pt-10 bg-gradient-to-t from-background-dark via-background-dark/95 to-transparent z-20">
-        <div className="flex items-center justify-between gap-4 glass-card p-4 rounded-2xl border border-white/10 shadow-2xl">
-          <div className="flex flex-col flex-1">
-            <span className="text-white/50 text-[10px] uppercase font-bold tracking-tighter mb-1 ml-1">Proposed Price</span>
-            <div className="flex items-center gap-1 bg-white rounded-xl px-3 py-1 border-2 border-primary/30">
-              <span className="text-black font-black text-lg">৳</span>
+      {/* Nearest Maid Proximity Radar Modal */}
+      {showProximityModal && (
+        <ProximityRadarModal
+          isOpen={showProximityModal}
+          onClose={() => setShowProximityModal(false)}
+          serviceCategory="Maid & Housekeeping"
+          serviceSubCategory={frequency}
+          userArea={serviceLocation.area}
+          userAddress={serviceLocation.address}
+          onSelectProvider={(provider: RankedProvider) => {
+            const userPhone = userProfile?.phone || localStorage.getItem('duyar_user_phone') || '+8801977347402';
+            const userName = userProfile?.full_name || 'Resident';
+            const userId = userProfile?.id;
+            const shiftDisplay = isCustomShift ? `Custom (${shiftTimeRange})` : `${shift} (${shiftTimeRange})`;
+            const hoursDisplay = `${hoursCount} Hours / Day`;
+
+            try {
+              addMaintenanceTicket({
+                title: `Housekeeping (${frequency} • ${provider.name})`,
+                category: 'Maid & Housekeeping',
+                icon: 'cleaning_services',
+                priority: 'Standard',
+                customerName: userName,
+                customerPhone: userPhone,
+                userId,
+                address: serviceLocation.address,
+                area: serviceLocation.area,
+                price: `৳ ${userPrice}`,
+                status: 'ASSIGNED',
+                technicianName: provider.name,
+                technicianRole: `${provider.role} (📍 ${provider.distanceKm} km away • Top Priority)`,
+                technicianPhone: provider.phone,
+                scheduledTime: `${shiftDisplay} • Arriving ~${provider.etaMinutes}m`,
+                description: `Assigned nearest housekeeper: ${provider.name} (${provider.distanceKm} km away) | Shift: ${shiftDisplay} | Hours: ${hoursDisplay} | Tasks: ${tasks.join(', ')}`
+              });
+            } catch (e) {
+              console.warn('Maid booking persistence error:', e);
+            }
+            setShowProximityModal(false);
+            onConfirm();
+          }}
+        />
+      )}
+
+      {/* Footer Action - PROPOSED PRICE, NEAREST RADAR & PREVIEW */}
+      <div className="absolute bottom-0 left-0 right-0 p-4 pt-8 bg-gradient-to-t from-background-dark via-background-dark/95 to-transparent z-20">
+        <div className="flex items-center justify-between gap-2.5 glass-card p-3.5 rounded-2xl border border-white/10 shadow-2xl">
+          <div className="flex flex-col min-w-0 pr-1">
+            <span className="text-white/50 text-[9px] uppercase font-bold tracking-tighter mb-0.5 ml-1">Price</span>
+            <div className="flex items-center gap-1 bg-white rounded-xl px-2.5 py-1 border-2 border-primary/30 w-24">
+              <span className="text-black font-black text-sm">৳</span>
               <input 
                 type="number"
                 value={userPrice}
                 onChange={(e) => setUserPrice(e.target.value)}
-                className="w-full bg-transparent border-none focus:ring-0 p-0 text-black text-lg font-black"
+                className="w-full bg-transparent border-none focus:ring-0 p-0 text-black text-sm font-black"
               />
             </div>
           </div>
+
+          {/* Priority Action: Find Nearest Maid Radar */}
+          <button 
+            type="button"
+            onClick={() => {
+              haptics.selection();
+              setShowProximityModal(true);
+            }}
+            className="flex-[1.2] bg-primary hover:shadow-[0_0_20px_rgba(19,236,236,0.4)] text-[#102222] text-[11px] font-black h-12 px-3 rounded-xl flex items-center justify-center gap-1.5 transition-all active:scale-[0.98] uppercase tracking-wider shrink-0 border border-primary/50"
+          >
+            <span className="material-symbols-outlined text-base font-black animate-pulse">radar</span>
+            <span>FIND NEAREST</span>
+          </button>
+
           <button 
             type="button"
             onClick={() => {
               haptics.selection();
               setShowPreviewModal(true);
             }}
-            className="bg-primary hover:shadow-[0_0_20px_rgba(19,236,236,0.4)] text-[#102222] text-[12px] font-black h-14 px-6 rounded-xl flex items-center justify-center gap-2 transition-all active:scale-[0.98] uppercase tracking-wider shrink-0"
+            className="flex-1 bg-white/10 hover:bg-white/15 text-white text-[11px] font-black h-12 px-3 rounded-xl flex items-center justify-center gap-1 transition-all active:scale-[0.98] uppercase tracking-wider shrink-0 border border-white/10"
           >
-            <span className="material-symbols-outlined text-base font-black">visibility</span>
-            <span>PREVIEW & SUBMIT</span>
+            <span className="material-symbols-outlined text-sm font-black">visibility</span>
+            <span>PREVIEW</span>
           </button>
         </div>
       </div>

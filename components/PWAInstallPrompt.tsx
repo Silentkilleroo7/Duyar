@@ -69,7 +69,7 @@ export const PWAInstallPrompt: React.FC = () => {
                 <img 
                   src="/pwa-192x192.png" 
                   alt="Duyar" 
-                  className="size-12 rounded-2xl border border-primary/40 object-cover shadow-[0_0_20px_rgba(19,236,218,0.3)]" 
+                  className="size-12 object-contain filter drop-shadow-[0_0_15px_rgba(19,236,218,0.4)]" 
                 />
                 <div>
                   <h3 className="text-base font-black italic uppercase text-white tracking-tight">Install Duyar App</h3>
@@ -114,7 +114,7 @@ export const PWAInstallPrompt: React.FC = () => {
                 <img 
                   src="/pwa-192x192.png" 
                   alt="Duyar" 
-                  className="size-12 rounded-2xl border border-primary/40 object-cover shadow-[0_0_20px_rgba(19,236,218,0.3)]" 
+                  className="size-12 object-contain filter drop-shadow-[0_0_15px_rgba(19,236,218,0.4)]" 
                 />
                 <div>
                   <h3 className="text-base font-black italic uppercase text-white tracking-tight">Install Duyar App</h3>
@@ -158,7 +158,7 @@ export const PWAInstallPrompt: React.FC = () => {
             <img 
               src="/pwa-192x192.png" 
               alt="Duyar App" 
-              className="size-9 rounded-xl border border-primary/40 object-cover shadow-[0_0_15px_rgba(19,236,218,0.3)] shrink-0" 
+              className="size-9 object-contain filter drop-shadow-[0_0_10px_rgba(19,236,218,0.4)] shrink-0" 
             />
             <div className="flex flex-col min-w-0">
               <div className="flex items-center gap-1.5">
@@ -207,7 +207,7 @@ export const PWAInstallPrompt: React.FC = () => {
               <img 
                 src="/pwa-192x192.png" 
                 alt="Duyar" 
-                className="size-12 rounded-2xl border border-primary/40 object-cover shadow-[0_0_20px_rgba(19,236,218,0.3)]" 
+                className="size-12 object-contain filter drop-shadow-[0_0_15px_rgba(19,236,218,0.4)]" 
               />
               <div>
                 <h3 className="text-base font-black italic uppercase text-white tracking-tight">Install Duyar App</h3>
@@ -252,7 +252,7 @@ export const PWAInstallPrompt: React.FC = () => {
               <img 
                 src="/pwa-192x192.png" 
                 alt="Duyar" 
-                className="size-12 rounded-2xl border border-primary/40 object-cover shadow-[0_0_20px_rgba(19,236,218,0.3)]" 
+                className="size-12 object-contain filter drop-shadow-[0_0_15px_rgba(19,236,218,0.4)]" 
               />
               <div>
                 <h3 className="text-base font-black italic uppercase text-white tracking-tight">Install Duyar App</h3>

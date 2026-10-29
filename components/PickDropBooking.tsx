@@ -1,6 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { saveActivePickDropRequest, getActivePickDropRequest, PickDropRequest } from '../pickDropStorage';
 import { haptics } from '../haptics';
+import { ProximityRadarModal } from './ProximityRadarModal';
+import { RankedProvider } from '../proximityDispatcher';
 
 interface Props {
   onBack: () => void;
@@ -47,6 +49,7 @@ const PickDropBooking: React.FC<Props> = ({ onBack, onConfirm, userProfile }) =>
   const [helpers, setHelpers] = useState(2);
   const [items, setItems] = useState<string[]>(['Sofa', 'Fridge']);
   const [userFare, setUserFare] = useState('2450');
+  const [showProximityModal, setShowProximityModal] = useState(false);
 
   // Item Details State (shown to driver)
   const [itemDetails, setItemDetails] = useState(
@@ -370,6 +373,37 @@ const PickDropBooking: React.FC<Props> = ({ onBack, onConfirm, userProfile }) =>
     };
 
     saveActivePickDropRequest(orderData);
+    onConfirm();
+  };
+
+  const handleProximityDispatch = (provider: RankedProvider) => {
+    const orderData: PickDropRequest = {
+      id: `PD-${Math.floor(1000 + Math.random() * 9000)}`,
+      vehicle,
+      helpers,
+      items,
+      itemDetails: itemDetails.trim() || 'Standard household items for moving.',
+      specialNotes,
+      pickupFloor,
+      dropFloor,
+      driverInstructions: `${driverInstructions ? `${driverInstructions} | ` : ''}Dispatched nearest driver: ${provider.name} (${provider.distanceKm} km away • Top Priority)`,
+      pickupArea: pickupLocation.area,
+      pickupAddress: pickupLocation.address,
+      dropArea: dropLocation.area,
+      dropAddress: dropLocation.address,
+      fare: userFare,
+      weightCategory: 'Under 500kg',
+      createdAt: new Date().toISOString(),
+      status: 'ACCEPTED',
+      driverName: provider.name,
+      driverPhone: provider.phone,
+      driverVehicleNo: `Dhaka Metro-U ${Math.floor(11 + Math.random() * 88)}-${Math.floor(1000 + Math.random() * 9000)} (📍 ${provider.distanceKm} km away • Top Priority)`,
+      userPhone: userProfile?.phone || localStorage.getItem('duyar_user_phone') || '+8801977347402',
+      userId: userProfile?.id
+    };
+
+    saveActivePickDropRequest(orderData);
+    setShowProximityModal(false);
     onConfirm();
   };
 
@@ -1158,6 +1192,17 @@ const PickDropBooking: React.FC<Props> = ({ onBack, onConfirm, userProfile }) =>
                 type="button"
                 onClick={() => {
                   setShowPreviewModal(false);
+                  setShowProximityModal(true);
+                }}
+                className="flex-[1.2] py-3.5 rounded-xl bg-primary/20 text-primary border border-primary/40 font-black text-xs uppercase tracking-wider hover:bg-primary/30 active:scale-95 transition-all flex items-center justify-center gap-1.5"
+              >
+                <span className="material-symbols-outlined text-base">radar</span>
+                <span>NEAREST RADAR</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowPreviewModal(false);
                   handleFinalConfirm();
                 }}
                 className="flex-[1.8] py-3.5 rounded-xl bg-primary text-black font-black text-xs uppercase tracking-widest shadow-[0_0_20px_rgba(19,236,218,0.4)] hover:brightness-110 active:scale-95 transition-all flex items-center justify-center gap-2"
@@ -1170,31 +1215,62 @@ const PickDropBooking: React.FC<Props> = ({ onBack, onConfirm, userProfile }) =>
         </div>
       )}
 
-      {/* Footer Area - EDITABLE FARE & PREVIEW & SUBMIT */}
+      {/* Nearest Driver Proximity Radar Modal */}
+      {showProximityModal && (
+        <ProximityRadarModal
+          isOpen={showProximityModal}
+          onClose={() => setShowProximityModal(false)}
+          serviceCategory="Pick & Drop"
+          serviceSubCategory={vehicle}
+          userArea={pickupLocation.area}
+          userAddress={pickupLocation.address}
+          userLat={pickupLocation.coords[0]}
+          userLng={pickupLocation.coords[1]}
+          onSelectProvider={handleProximityDispatch}
+          onConfirmWithoutSpecificProvider={handleFinalConfirm}
+        />
+      )}
+
+      {/* Footer Area - EDITABLE FARE & NEAREST RADAR & PREVIEW */}
       <div className="p-4 bg-background-dark/80 backdrop-blur-xl border-t border-white/10 pb-10 z-20">
-        <div className="flex items-center justify-between mb-4 px-2 gap-4">
-          <div className="flex flex-col flex-1">
-            <p className="text-white/40 text-[10px] uppercase font-black tracking-widest mb-1">Your Price</p>
-            <div className="flex items-center gap-1 bg-white rounded-xl px-3 py-1.5 border-2 border-primary/30 shadow-inner">
-              <span className="text-black font-black text-xl">৳</span>
+        <div className="flex items-center justify-between mb-4 px-2 gap-2.5">
+          <div className="flex flex-col min-w-0 pr-1">
+            <p className="text-white/40 text-[9px] uppercase font-black tracking-widest mb-0.5">Price</p>
+            <div className="flex items-center gap-1 bg-white rounded-xl px-2.5 py-1 border-2 border-primary/30 shadow-inner w-24">
+              <span className="text-black font-black text-sm">৳</span>
               <input 
                 type="number"
                 value={userFare}
                 onChange={(e) => setUserFare(e.target.value)}
-                className="w-full bg-transparent border-none focus:ring-0 p-0 text-black text-xl font-black"
+                className="w-full bg-transparent border-none focus:ring-0 p-0 text-black text-sm font-black"
               />
             </div>
           </div>
+
+          {/* Action 1: Find Nearest Driver Radar */}
+          <button 
+            type="button"
+            onClick={() => {
+              haptics.selection();
+              setShowProximityModal(true);
+            }} 
+            className="flex-[1.2] bg-primary px-3 py-3 rounded-xl text-background-dark font-black text-[11px] uppercase tracking-wider active:scale-[0.98] transition-transform shadow-[0_0_20px_rgba(19,236,218,0.3)] h-12 shrink-0 flex items-center justify-center gap-1.5 hover:brightness-110 border border-primary/50"
+          >
+            <span className="material-symbols-outlined text-base font-black animate-pulse">radar</span>
+            <span>FIND NEAREST</span>
+          </button>
+
+          {/* Action 2: Preview & Submit */}
           <button 
             type="button"
             onClick={() => {
               haptics.selection();
               setShowPreviewModal(true);
             }} 
-            className="bg-primary px-6 py-4 rounded-xl text-background-dark font-black text-xs uppercase tracking-[0.15em] active:scale-[0.98] transition-transform shadow-[0_0_20px_rgba(19,236,218,0.2)] h-14 mt-4 shrink-0 flex items-center justify-center gap-2 italic hover:brightness-110"
+            className="flex-1 bg-white/10 px-3 py-3 rounded-xl text-white font-black text-[11px] uppercase tracking-wider active:scale-[0.98] transition-transform border border-white/10 h-12 shrink-0 flex items-center justify-center gap-1 hover:bg-white/15"
           >
-            <span className="material-symbols-outlined text-base font-black">visibility</span>
-            <span>PREVIEW & SUBMIT</span>
+            <span className="material-symbols-outlined text-sm font-black">visibility</span>
+            <span>PREVIEW</span>
           </button>
         </div>
       </div>

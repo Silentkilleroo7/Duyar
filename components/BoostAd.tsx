@@ -49,9 +49,10 @@ const BoostAd: React.FC<Props> = ({ onBack, onSelectPlan }) => {
             </div>
           </div>
           <div 
-            className="w-32 bg-center bg-no-repeat aspect-square bg-cover rounded-lg flex-none border border-white/10" 
-            style={{ backgroundImage: 'url("https://lh3.googleusercontent.com/aida-public/AB6AXuBWatcQfj6gW8xdAr0-OVcpF_Szvtbwd-TbAWD5hBo9hzxuh5AV2D9QHDIVSGAW_o5steUArYG10qsHvkurlgN0I5syZifrGOU1OSgzrL2QcdwrkvtL0I1nB7VY_3WjLOeRqJEgr2zmutRoNOE7UKt7_0wiyiFy3CUb3cIiOGt2nhDBnSr6qOAJnbf0O6etjY34lmrA_0tbtpdO5UogsDHLNiIWdETKlMkz69dAORSWDzn1rs4aYoBJk1t0NtaT12QivS2R3c2cqQM")' }}
-          ></div>
+            className="w-28 h-28 bg-gradient-to-br from-primary/20 via-primary/5 to-transparent rounded-lg flex-none border border-primary/30 flex items-center justify-center text-primary"
+          >
+            <span className="material-symbols-outlined text-4xl">rocket_launch</span>
+          </div>
         </div>
       </div>
 

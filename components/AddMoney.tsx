@@ -116,7 +116,7 @@ const AddMoney: React.FC<Props> = ({ onBack, onSuccess }) => {
           box-shadow: 0 0 20px rgba(19, 236, 218, 0.3);
         }
         .map-bg {
-          background-image: linear-gradient(rgba(16, 34, 32, 0.94), rgba(16, 34, 32, 0.94)), url(https://lh3.googleusercontent.com/aida-public/AB6AXuBnaecYE6aQhp-IeydS94ypS2d6s3wcjzskt238wb6N5PUnkPeRjUAbDQHKFYv_HQOQ4BOzzxT02TJvpOpaZ151hkNzZpEcm4oMPTP-A19SSGf956t-86Eu3JScoHY_c-LUqm4LqM8RQEU_oVPkgRyGWp6Q-W3kSGNHW7ANSVXIrc4A_kcCuVMGlsRnp2QKgx-qKnQ-sy-0iNf7EX27_SmPfmxqP3xlmGPf_4jrZU3JtvNpgNbAPZ-9DI9ULsuY8w5TEYBJunRUMDE);
+          background-image: linear-gradient(rgba(16, 34, 32, 0.94), rgba(16, 34, 32, 0.94)), url();
           background-size: cover;
           background-position: center;
         }

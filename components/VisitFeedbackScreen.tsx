@@ -35,7 +35,7 @@ const VisitFeedbackScreen: React.FC<Props> = ({ onBack, onSubmit, property, visi
   // If visit is provided, use visit info; otherwise fallback to property
   const effectivePropertyTitle = visit?.propertyTitle || property?.title || 'Modern 3BHK Luxury Flat';
   const effectiveLocation = visit?.propertyLocation || property?.location || 'Banani Block D, Dhaka';
-  const effectiveImage = visit?.propertyImage || property?.image || 'https://lh3.googleusercontent.com/aida-public/AB6AXuBt_tIU1VYAKGvGcVMXhhdPbwqjD_cbtCRB4tkdIkHQ3_OwzPgy3wm9odW-3KF6NSc6IgrAUkeLFEERYwbSdJX4jf2_tgaMTOwMabAdospmUPng3pEEvYI1DoKPD1fX5yIHQiR_xpzrWLws6ifjoYuNZReND2sG1pqs_0aJnL1WO7iPJWxJHWUeL065n0Bwk6QdNJGTOFruANP6-BMcCETQXuXWQSfv20zj7dFO_fXRTXBt87U6jrpIXW9IO9BO0enOpMnbTbYJzHw';
+  const effectiveImage = visit?.propertyImage || property?.image || '';
   const effectiveVisitDate = visit?.scheduledDate || 'Today';
   const effectiveVisitTime = visit?.scheduledTime || '10:30 AM';
 

@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { getActivePickDropRequest, DEFAULT_PICKDROP_REQUEST, PickDropRequest, updatePickDropStatus } from '../pickDropStorage';
 import { updateTicketStatus } from '../maintenanceStorage';
 import { haptics } from '../haptics';
+import { realtimeClient, RealtimeTrackingState } from '../realtimeClient';
+import ProviderAvatar from './ProviderAvatar';
 
 export interface ServiceTrackingData {
   id?: string;
@@ -63,11 +65,11 @@ function resolveServiceProfile(
       categoryKey: 'ELECTRICAL',
       categoryTitle: 'Electrical Maintenance',
       badgeLabel: 'MASTER ELECTRICIAN EN ROUTE',
-      providerName: serviceData?.providerName || 'Md. Kabir Hossain',
-      providerRole: serviceData?.providerRole || 'Licensed Senior Electrician • 4.9★',
+      providerName: serviceData?.providerName || 'Licensed Electrician',
+      providerRole: serviceData?.providerRole || 'Licensed Electrical Specialist',
       providerPhone: serviceData?.providerPhone || '+880 1712-984512',
-      providerImage: serviceData?.providerImage || 'https://lh3.googleusercontent.com/aida-public/AB6AXuDaX6sDjQxpvUGeB_0Not7GzlTANyX0X71oCtAQZnlfX-kNT3gwtoOBsEs1UeWpAm1ath0eBsxXu5SwYrJt0xkZt--1UO42wIRyfJiY1FbTZm_4n6S6LEOmFKpTF-fwJLpQVvN2yMO8iKFMIaVhmTdA2gkLZWk0SwOMa0Wi8KmJ2TnMkZo9Sql6FCefcWPX7V5nrbVNpjksJVtryOenL8Z38OAV6uzzy9zr7Z20NN-5foEcNq_zB9akXMpZrujmbxb0WY3foZr7iTA',
-      providerRating: '4.9★ (140+ jobs)',
+      providerImage: serviceData?.providerImage || '',
+      providerRating: serviceData?.providerRating || 'Verified Specialist',
       licenseNumber: 'Govt. Grade-A Electrician: #BD-ELEC-4092',
       icon: 'bolt',
       vehicleOrMode: 'Equipped Electrical Service Van',
@@ -76,7 +78,7 @@ function resolveServiceProfile(
       telemetry2: { icon: 'construction', label: 'Spares Loaded', value: '32A Breakers & Wire' },
       workOrderScope: {
         title: 'Electrical Diagnostic & Circuit Repair',
-        description: 'Breaker diagnostic, line load balancing, socket inspection, voltage test, and emergency isolation.',
+        description: 'Breaker diagnostic, line load balancing, socket inspection, line calibration, and emergency isolation.',
         tags: ['⚡ 1000V Insulated Rig', '🛡️ Safety Certified', '📦 Breakers Loaded', '🏢 On-Site Diagnostics'],
         locationSummary: serviceData?.address || 'House 14, Road 11, Block D, Banani, Dhaka',
         price: serviceData?.price || '৳ 1,250'
@@ -85,7 +87,7 @@ function resolveServiceProfile(
         'Master Electrician dispatched from Banani Service Depot...',
         'Digital multimeter, 32A breaker fuses & safety gear verified...',
         'Service van navigating via Kamal Ataturk Avenue...',
-        'Approaching residential premises — technician ready with testing kit...'
+        'Approaching residential premises — technician ready with certified tools...'
       ],
       isMovingCargo: false
     };
@@ -97,11 +99,11 @@ function resolveServiceProfile(
       categoryKey: 'PLUMBING',
       categoryTitle: 'Plumbing Maintenance',
       badgeLabel: 'MASTER PLUMBER DISPATCHED',
-      providerName: serviceData?.providerName || 'Ariful Islam',
-      providerRole: serviceData?.providerRole || 'Master Plumber & Pipe Specialist • 4.8★',
+      providerName: serviceData?.providerName || 'Master Plumber',
+      providerRole: serviceData?.providerRole || 'Master Plumber & Pipe Specialist',
       providerPhone: serviceData?.providerPhone || '+880 1912-345678',
-      providerImage: serviceData?.providerImage || 'https://lh3.googleusercontent.com/aida-public/AB6AXuDaX6sDjQxpvUGeB_0Not7GzlTANyX0X71oCtAQZnlfX-kNT3gwtoOBsEs1UeWpAm1ath0eBsxXu5SwYrJt0xkZt--1UO42wIRyfJiY1FbTZm_4n6S6LEOmFKpTF-fwJLpQVvN2yMO8iKFMIaVhmTdA2gkLZWk0SwOMa0Wi8KmJ2TnMkZo9Sql6FCefcWPX7V5nrbVNpjksJVtryOenL8Z38OAV6uzzy9zr7Z20NN-5foEcNq_zB9akXMpZrujmbxb0WY3foZr7iTA',
-      providerRating: '4.8★ (98 jobs)',
+      providerImage: serviceData?.providerImage || '',
+      providerRating: serviceData?.providerRating || 'Verified Specialist',
       licenseNumber: 'Govt. Hydro License: #BD-PLM-8812',
       icon: 'plumbing',
       vehicleOrMode: 'Rapid Plumbing Utility Van',
@@ -131,11 +133,11 @@ function resolveServiceProfile(
       categoryKey: 'MAID',
       categoryTitle: 'Maid & Housekeeping',
       badgeLabel: 'VERIFIED HOUSEKEEPER EN ROUTE',
-      providerName: serviceData?.providerName || 'Fatema Begum',
-      providerRole: serviceData?.providerRole || 'Verified Housekeeping & Sanitization Specialist • 4.9★',
+      providerName: serviceData?.providerName || 'Housekeeping Specialist',
+      providerRole: serviceData?.providerRole || 'Verified Housekeeping & Sanitization Specialist',
       providerPhone: serviceData?.providerPhone || '+880 1744-889900',
-      providerImage: serviceData?.providerImage || 'https://lh3.googleusercontent.com/aida-public/AB6AXuDaX6sDjQxpvUGeB_0Not7GzlTANyX0X71oCtAQZnlfX-kNT3gwtoOBsEs1UeWpAm1ath0eBsxXu5SwYrJt0xkZt--1UO42wIRyfJiY1FbTZm_4n6S6LEOmFKpTF-fwJLpQVvN2yMO8iKFMIaVhmTdA2gkLZWk0SwOMa0Wi8KmJ2TnMkZo9Sql6FCefcWPX7V5nrbVNpjksJVtryOenL8Z38OAV6uzzy9zr7Z20NN-5foEcNq_zB9akXMpZrujmbxb0WY3foZr7iTA',
-      providerRating: '4.9★ (210+ tasks)',
+      providerImage: serviceData?.providerImage || '',
+      providerRating: serviceData?.providerRating || 'Verified Specialist',
       licenseNumber: 'Duyar Background-Verified: #VFD-MD-1102',
       icon: 'cleaning_services',
       vehicleOrMode: 'City Transit & Foot Travel',
@@ -165,11 +167,11 @@ function resolveServiceProfile(
       categoryKey: 'SECURITY',
       categoryTitle: 'Security Guard Service',
       badgeLabel: 'SECURITY OFFICER DEPLOYED',
-      providerName: serviceData?.providerName || 'Habibur Rahman',
-      providerRole: serviceData?.providerRole || 'Senior Security Officer • 5.0★',
+      providerName: serviceData?.providerName || 'Security Specialist',
+      providerRole: serviceData?.providerRole || 'Senior Security Specialist',
       providerPhone: serviceData?.providerPhone || '+880 1855-667788',
-      providerImage: serviceData?.providerImage || 'https://lh3.googleusercontent.com/aida-public/AB6AXuDaX6sDjQxpvUGeB_0Not7GzlTANyX0X71oCtAQZnlfX-kNT3gwtoOBsEs1UeWpAm1ath0eBsxXu5SwYrJt0xkZt--1UO42wIRyfJiY1FbTZm_4n6S6LEOmFKpTF-fwJLpQVvN2yMO8iKFMIaVhmTdA2gkLZWk0SwOMa0Wi8KmJ2TnMkZo9Sql6FCefcWPX7V5nrbVNpjksJVtryOenL8Z38OAV6uzzy9zr7Z20NN-5foEcNq_zB9akXMpZrujmbxb0WY3foZr7iTA',
-      providerRating: '5.0★ (Ex-Army Trained)',
+      providerImage: serviceData?.providerImage || '',
+      providerRating: serviceData?.providerRating || 'Verified Specialist',
       licenseNumber: 'Govt. Private Security Reg: #SEC-8891',
       icon: 'shield_person',
       vehicleOrMode: 'Tactical Security Unit',
@@ -215,29 +217,29 @@ function resolveServiceProfile(
       categoryKey: 'PICK_DROP',
       categoryTitle: 'Pick & Drop Shipment',
       badgeLabel: 'MOVING TRUCK EN ROUTE',
-      providerName: pd.driverName || 'Rakibul Islam',
-      providerRole: `${pd.vehicle || 'Mini Truck'} Pilot • 4.9★`,
+      providerName: pd.driverName || 'Logistics Pilot',
+      providerRole: `${pd.vehicle || 'Logistics'} Pilot • Verified`,
       providerPhone: pd.driverPhone || '+880 1819-234567',
-      providerImage: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDaX6sDjQxpvUGeB_0Not7GzlTANyX0X71oCtAQZnlfX-kNT3gwtoOBsEs1UeWpAm1ath0eBsxXu5SwYrJt0xkZt--1UO42wIRyfJiY1FbTZm_4n6S6LEOmFKpTF-fwJLpQVvN2yMO8iKFMIaVhmTdA2gkLZWk0SwOMa0Wi8KmJ2TnMkZo9Sql6FCefcWPX7V5nrbVNpjksJVtryOenL8Z38OAV6uzzy9zr7Z20NN-5foEcNq_zB9akXMpZrujmbxb0WY3foZr7iTA',
-      providerRating: '4.9★ (340+ trips)',
-      licenseNumber: pd.driverVehicleNo || 'Dhaka Metro-Ta 14-8821',
+      providerImage: pd.driverImage || '',
+      providerRating: 'Verified Driver',
+      licenseNumber: pd.driverVehicleNo || 'Dhaka Metro Certified',
       icon: 'local_shipping',
-      vehicleOrMode: `${pd.vehicle || 'Mini Truck'} (${pd.driverVehicleNo || 'Dhaka Metro-Ta 14-8821'})`,
+      vehicleOrMode: `${pd.vehicle || 'Vehicle'} (${pd.driverVehicleNo || 'Active Route'})`,
       workOrderId: pd.id || '#PD-8821',
       telemetry1: { icon: 'speed', label: 'Speed', value: '38 km/h' },
       telemetry2: { icon: 'battery_charging_80', label: 'Battery/Fuel', value: '84%' },
       workOrderScope: {
         title: 'Moving Items & Cargo Logistics',
         description: pd.itemDetails || 'Standard household items for moving.',
-        tags: pd.specialNotes || ['Fragile / Glassware', 'Elevator Available'],
+        tags: pd.specialNotes || ['Careful Handling', 'Verified Transport'],
         locationSummary: `${pd.pickupArea || 'Banani'} ➔ ${pd.dropArea || 'Uttara'}`,
         price: pd.fare ? `৳ ${pd.fare}` : '৳ 2,450'
       },
       trackingLogs: [
-        'Moving truck dispatched with 2 helpers...',
-        'GPS coordinate set #PX992 locked via Satellite...',
+        'Transport dispatched to pickup coordinates...',
+        'GPS coordinate set locked via Satellite...',
         'Optimal route calculated via Dhaka Express Highway...',
-        'Truck arriving at pickup location...'
+        'Vehicle arriving at pickup location...'
       ],
       isMovingCargo: true
     };
@@ -248,11 +250,11 @@ function resolveServiceProfile(
     categoryKey: 'MAINTENANCE',
     categoryTitle: serviceData?.category || 'General Maintenance',
     badgeLabel: 'MAINTENANCE SPECIALIST EN ROUTE',
-    providerName: serviceData?.providerName || 'Ahmed Hassan',
-    providerRole: serviceData?.providerRole || 'Chief Maintenance Technician • 4.9★',
+    providerName: serviceData?.providerName || 'Maintenance Specialist',
+    providerRole: serviceData?.providerRole || 'Chief Maintenance Technician',
     providerPhone: serviceData?.providerPhone || '+880 1912-345678',
-    providerImage: serviceData?.providerImage || 'https://lh3.googleusercontent.com/aida-public/AB6AXuDaX6sDjQxpvUGeB_0Not7GzlTANyX0X71oCtAQZnlfX-kNT3gwtoOBsEs1UeWpAm1ath0eBsxXu5SwYrJt0xkZt--1UO42wIRyfJiY1FbTZm_4n6S6LEOmFKpTF-fwJLpQVvN2yMO8iKFMIaVhmTdA2gkLZWk0SwOMa0Wi8KmJ2TnMkZo9Sql6FCefcWPX7V5nrbVNpjksJVtryOenL8Z38OAV6uzzy9zr7Z20NN-5foEcNq_zB9akXMpZrujmbxb0WY3foZr7iTA',
-    providerRating: '4.9★ (120+ jobs)',
+    providerImage: serviceData?.providerImage || '',
+    providerRating: serviceData?.providerRating || 'Verified Specialist',
     licenseNumber: 'Govt. Certified Technician: #TECH-9902',
     icon: 'home_repair_service',
     vehicleOrMode: 'Maintenance Mobile Unit',
@@ -261,7 +263,7 @@ function resolveServiceProfile(
     telemetry2: { icon: 'verified', label: 'Certification', value: 'Verified Expert' },
     workOrderScope: {
       title: 'Home Maintenance Work Order',
-      description: 'Scheduled on-site diagnostic, equipment test, and professional repair execution.',
+      description: 'Scheduled on-site diagnostic, equipment inspection, and professional repair execution.',
       tags: ['🛠️ Tool Kit Loaded', '🛡️ Duyar Verified', '⏱️ Same-Day Service'],
       locationSummary: serviceData?.address || 'Banani, Dhaka',
       price: serviceData?.price || '৳ 1,250'
@@ -285,7 +287,15 @@ const LiveTracking: React.FC<Props> = ({ onBack, onArrived, serviceType, service
   const [isCompleting, setIsCompleting] = useState(false);
   const [speedKmh, setSpeedKmh] = useState<number>(36);
   const [isFullMap, setIsFullMap] = useState<boolean>(false);
+  const [isBroadcastingGps, setIsBroadcastingGps] = useState<boolean>(false);
+  const [isWsConnected, setIsWsConnected] = useState<boolean>(realtimeClient.getIsConnected());
+  
   const touchStartYRef = useRef<number | null>(null);
+  const watchIdRef = useRef<number | null>(null);
+
+  // Compute the service profile matching this specific service
+  const serviceProfile = resolveServiceProfile(serviceType, serviceData, pickDropReq);
+  const effectiveTicketId = serviceData?.id || pickDropReq?.id || serviceProfile.workOrderId.replace('#', '') || 'SRV-MAIN-TRACK';
 
   // Invalidate Leaflet dimensions when toggling full map
   useEffect(() => {
@@ -307,21 +317,32 @@ const LiveTracking: React.FC<Props> = ({ onBack, onArrived, serviceType, service
     }
   }, []);
 
-  // Compute the service profile matching THIS specific service
-  const serviceProfile = resolveServiceProfile(serviceType, serviceData, pickDropReq);
-
-  const [trackingLogs, setTrackingLogs] = useState<string[]>(serviceProfile.trackingLogs);
-
-  // Rotating status logs
+  // Monitor real-time WebSocket connection
   useEffect(() => {
-    setTrackingLogs(serviceProfile.trackingLogs);
-    const interval = setInterval(() => {
-      const logs = serviceProfile.trackingLogs;
-      const randomLog = logs[Math.floor(Math.random() * logs.length)];
-      setTrackingLogs(prev => [randomLog, ...prev.slice(0, 3)]);
-    }, 4000);
-    return () => clearInterval(interval);
-  }, [serviceProfile.categoryKey]);
+    const unsub = realtimeClient.onConnectionChange(setIsWsConnected);
+    return unsub;
+  }, []);
+
+  // Subscribe to real-time server tracking for this ticket
+  useEffect(() => {
+    if (!effectiveTicketId) return;
+
+    const unsubscribe = realtimeClient.subscribeTracking(effectiveTicketId, (trackingState: RealtimeTrackingState) => {
+      if (trackingState) {
+        if (trackingState.providerLat && trackingState.providerLng) {
+          setProviderPos([trackingState.providerLat, trackingState.providerLng]);
+        }
+        if (trackingState.userLat && trackingState.userLng) {
+          setUserPos([trackingState.userLat, trackingState.userLng]);
+        }
+        if (trackingState.speedKmh) {
+          setSpeedKmh(trackingState.speedKmh);
+        }
+      }
+    });
+
+    return unsubscribe;
+  }, [effectiveTicketId]);
 
   const mapRef = useRef<HTMLDivElement>(null);
   const leafletInstance = useRef<any>(null);
@@ -329,7 +350,7 @@ const LiveTracking: React.FC<Props> = ({ onBack, onArrived, serviceType, service
   const providerMarkerRef = useRef<any>(null);
   const routeLineRef = useRef<any>(null);
 
-  // Get User GPS Position and initialize provider position at realistic distance
+  // Get User Real GPS Position initially
   useEffect(() => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
@@ -337,54 +358,89 @@ const LiveTracking: React.FC<Props> = ({ onBack, onArrived, serviceType, service
           const uLat = pos.coords.latitude;
           const uLng = pos.coords.longitude;
           setUserPos([uLat, uLng]);
-          // Place provider about 1.8km northeast from user initially
-          setProviderPos([uLat + 0.011, uLng + 0.009]);
+          
+          // Place provider at realistic initial offset if not yet placed by server
+          setProviderPos(prev => {
+            if (prev[0] === 23.805 && prev[1] === 90.415) {
+              return [uLat + 0.008, uLng + 0.007];
+            }
+            return prev;
+          });
+
+          // Sync initial location to server
+          realtimeClient.broadcastLocation(effectiveTicketId, {
+            ticketId: effectiveTicketId,
+            userLat: uLat,
+            userLng: uLng,
+            providerLat: uLat + 0.008,
+            providerLng: uLng + 0.007,
+            speedKmh: 36,
+            status: 'EN_ROUTE'
+          });
         },
         () => {
-          setUserPos([23.794, 90.4043]);
-          setProviderPos([23.805, 90.413]);
+          // Fallback to Dhaka central coordinates
+          const defaultUser: [number, number] = [23.794, 90.4043];
+          setUserPos(defaultUser);
+          setProviderPos([23.802, 90.411]);
         },
-        { enableHighAccuracy: true }
+        { enableHighAccuracy: true, timeout: 8000 }
       );
     } else {
       setUserPos([23.794, 90.4043]);
-      setProviderPos([23.805, 90.413]);
+      setProviderPos([23.802, 90.411]);
     }
-  }, []);
+  }, [effectiveTicketId]);
 
-  // Real-time Provider Movement Simulation towards user position
-  useEffect(() => {
-    if (!userPos) return;
+  // Real GPS broadcasting toggle (allows real mobile testing or provider on-site tracking)
+  const toggleRealGpsBroadcasting = () => {
+    haptics.selection();
+    if (isBroadcastingGps) {
+      if (watchIdRef.current !== null && navigator.geolocation) {
+        navigator.geolocation.clearWatch(watchIdRef.current);
+        watchIdRef.current = null;
+      }
+      setIsBroadcastingGps(false);
+    } else {
+      if (navigator.geolocation) {
+        setIsBroadcastingGps(true);
+        watchIdRef.current = navigator.geolocation.watchPosition(
+          (pos) => {
+            const currentLat = pos.coords.latitude;
+            const currentLng = pos.coords.longitude;
+            const currentSpeed = pos.coords.speed ? Math.round(pos.coords.speed * 3.6) : 32;
 
-    const moveInterval = setInterval(() => {
-      setProviderPos((prev) => {
-        const dLat = userPos[0] - prev[0];
-        const dLng = userPos[1] - prev[1];
-        const distRemaining = Math.sqrt(dLat * dLat + dLng * dLng);
+            setProviderPos([currentLat, currentLng]);
+            if (currentSpeed > 0) setSpeedKmh(currentSpeed);
 
-        // If very close, stay near
-        if (distRemaining < 0.0003) {
-          return prev;
-        }
+            realtimeClient.broadcastLocation(effectiveTicketId, {
+              ticketId: effectiveTicketId,
+              providerLat: currentLat,
+              providerLng: currentLng,
+              userLat: userPos ? userPos[0] : currentLat,
+              userLng: userPos ? userPos[1] : currentLng,
+              speedKmh: currentSpeed,
+              status: 'EN_ROUTE',
+              lastUpdatedBy: 'live_device_gps'
+            });
+          },
+          (err) => {
+            console.warn('GPS Watch error:', err);
+            setIsBroadcastingGps(false);
+          },
+          { enableHighAccuracy: true, maximumAge: 1000 }
+        );
+      }
+    }
+  };
 
-        // Smoothly step 5% towards user
-        const step = 0.055;
-        const newLat = prev[0] + dLat * step;
-        const newLng = prev[1] + dLng * step;
-
-        // Minor variation in speed
-        setSpeedKmh(Math.floor(32 + Math.random() * 14));
-
-        return [newLat, newLng];
-      });
-    }, 2800);
-
-    return () => clearInterval(moveInterval);
-  }, [userPos]);
-
-  // Clean up leaflet map safely on unmount
+  // Clean up leaflet and GPS watcher safely on unmount
   useEffect(() => {
     return () => {
+      if (watchIdRef.current !== null && navigator.geolocation) {
+        navigator.geolocation.clearWatch(watchIdRef.current);
+        watchIdRef.current = null;
+      }
       if (leafletInstance.current) {
         try {
           leafletInstance.current.remove();
@@ -525,7 +581,6 @@ const LiveTracking: React.FC<Props> = ({ onBack, onArrived, serviceType, service
     setIsCompleting(true);
 
     try {
-      // 1. If it's a Pick & Drop request
       if (serviceProfile.categoryKey === 'PICK_DROP') {
         const activeReq = getActivePickDropRequest();
         if (activeReq?.id) {
@@ -535,10 +590,14 @@ const LiveTracking: React.FC<Props> = ({ onBack, onArrived, serviceType, service
         }
       }
 
-      // 2. If it's a maintenance ticket
       if (serviceData?.id) {
         updateTicketStatus(serviceData.id, 'COMPLETED', 'Customer confirmed specialist on-site arrival.');
       }
+
+      realtimeClient.broadcastTicketStatus(effectiveTicketId, 'COMPLETED', {
+        status: 'COMPLETED',
+        note: 'Service arrival confirmed by resident'
+      });
     } catch (e) {
       console.warn('Arrival update error:', e);
     }
@@ -611,8 +670,11 @@ const LiveTracking: React.FC<Props> = ({ onBack, onArrived, serviceType, service
             <span className="text-[7.5px] opacity-75 font-bold">ESTIMATED ARRIVAL</span>
           </div>
 
-          <div className="bg-background-dark/90 backdrop-blur-md border border-white/10 text-white/90 px-3 py-1 rounded-lg font-bold text-[8.5px] uppercase tracking-wider shadow-lg">
-            {distance} • LIVE GPS LINK
+          <div className="flex items-center gap-2">
+            <div className="bg-background-dark/90 backdrop-blur-md border border-white/10 text-white/90 px-3 py-1 rounded-lg font-bold text-[8.5px] uppercase tracking-wider shadow-lg flex items-center gap-1.5">
+              <span className={`size-1.5 rounded-full ${isWsConnected ? 'bg-emerald-400 animate-ping' : 'bg-amber-400'}`}></span>
+              <span>{distance} • {isWsConnected ? 'REAL-TIME GPS' : 'RECONNECTING'}</span>
+            </div>
           </div>
         </div>
       </header>
@@ -638,10 +700,27 @@ const LiveTracking: React.FC<Props> = ({ onBack, onArrived, serviceType, service
             <p className="text-white text-xs font-black italic mt-0.5">{serviceProfile.telemetry2.value}</p>
           </div>
         </div>
+
+        {/* Real GPS Transmit Button */}
+        <button
+          type="button"
+          onClick={toggleRealGpsBroadcasting}
+          className={`px-3 py-2 rounded-2xl flex items-center gap-2 text-[9px] font-black uppercase tracking-wider border shadow-xl transition-all ${
+            isBroadcastingGps
+              ? 'bg-emerald-500/20 text-emerald-300 border-emerald-400/40 shadow-emerald-500/20'
+              : 'glass-card text-white/80 border-white/10 hover:border-primary/40'
+          }`}
+          title="Stream hardware device GPS in real time"
+        >
+          <span className={`material-symbols-outlined text-sm ${isBroadcastingGps ? 'text-emerald-400 animate-spin' : 'text-primary'}`}>
+            {isBroadcastingGps ? 'satellite_alt' : 'sensors'}
+          </span>
+          <span>{isBroadcastingGps ? 'Streaming Device GPS' : 'Broadcast My GPS'}</span>
+        </button>
       </div>
 
       {/* Floating Interactive Map Controls (Right Side) */}
-      <div className="absolute right-4 top-36 z-20 flex flex-col gap-2.5 pointer-events-auto">
+      <div className="absolute right-4 top-40 z-20 flex flex-col gap-2.5 pointer-events-auto">
         <button 
           onClick={handleFitRoute}
           className="size-11 rounded-2xl glass-card flex items-center justify-center text-primary border border-primary/30 shadow-xl active:scale-90 hover:bg-primary/20 transition-all"
@@ -701,11 +780,9 @@ const LiveTracking: React.FC<Props> = ({ onBack, onArrived, serviceType, service
               if (touchStartYRef.current !== null) {
                 const diff = e.changedTouches[0].clientY - touchStartYRef.current;
                 if (diff > 35 && !isFullMap) {
-                  // Swiped down -> Full Map Tracking!
                   haptics.selection();
                   setIsFullMap(true);
                 } else if (diff < -35 && isFullMap) {
-                  // Swiped up -> Restore Sheet!
                   haptics.selection();
                   setIsFullMap(false);
                 }
@@ -740,71 +817,72 @@ const LiveTracking: React.FC<Props> = ({ onBack, onArrived, serviceType, service
           {/* Provider Identity & Contact Row */}
           <div className="flex items-center justify-between gap-3 mb-4">
             <div className="flex items-center gap-3.5 min-w-0">
-              <div className="relative shrink-0">
-                <div 
-                  className="size-14 rounded-2xl bg-center bg-cover border-2 border-primary/40 shadow-xl" 
-                  style={{ backgroundImage: `url('${serviceProfile.providerImage}')` }}
-                ></div>
-                <div className="absolute -bottom-1 -right-1 size-4 bg-emerald-500 rounded-full border-2 border-[#0a1211] flex items-center justify-center">
-                  <span className="material-symbols-outlined text-[10px] text-black font-black">check</span>
-                </div>
-              </div>
-
+              <ProviderAvatar 
+                name={serviceProfile.providerName} 
+                category={serviceProfile.categoryTitle} 
+                role={serviceProfile.providerRole} 
+                image={serviceProfile.providerImage} 
+                size="lg" 
+                isOnline={true} 
+                showOnlineDot={true} 
+              />
               <div className="min-w-0">
-                <h3 className="text-white text-base font-extrabold tracking-tight truncate">
-                  {serviceProfile.providerName}
+                <h3 className="font-extrabold text-sm text-white truncate flex items-center gap-1">
+                  <span>{serviceProfile.providerName}</span>
+                  <span className="material-symbols-outlined text-primary text-xs font-black">verified</span>
                 </h3>
-                <p className="text-primary text-[10px] font-bold uppercase tracking-wider truncate mt-0.5">
+                <p className="text-primary text-[10.5px] font-bold truncate mt-0.5">
                   {serviceProfile.providerRole}
                 </p>
-                <p className="text-white/40 text-[8px] font-mono truncate mt-0.5">
+                <p className="text-white/40 text-[9px] font-mono truncate mt-0.5">
                   {serviceProfile.licenseNumber}
                 </p>
               </div>
             </div>
 
-            <a 
-              href={`tel:${serviceProfile.providerPhone}`}
-              className="bg-primary hover:bg-[#11d8c7] text-black size-12 rounded-2xl flex items-center justify-center active:scale-95 transition-all shadow-[0_0_15px_rgba(19,236,218,0.3)] shrink-0"
-              title="Call Provider"
-            >
-              <span className="material-symbols-outlined text-2xl font-black">call</span>
-            </a>
+            <div className="flex items-center gap-2 shrink-0">
+              <a 
+                href={`tel:${serviceProfile.providerPhone}`}
+                className="size-11 rounded-2xl bg-primary text-black flex items-center justify-center shadow-lg shadow-primary/25 hover:brightness-110 active:scale-90 transition-all"
+                title="Call Specialist"
+              >
+                <span className="material-symbols-outlined text-xl">call</span>
+              </a>
+            </div>
           </div>
 
-          {/* ============================================================== */}
-          {/* SERVICE-SPECIFIC WORK ORDER SECTION (Never mismatched)         */}
-          {/* ============================================================== */}
+          {/* Vehicle / Mode Info Row */}
+          <div className="p-3 rounded-2xl bg-white/[0.04] border border-white/10 mb-4 flex items-center justify-between">
+            <div className="flex items-center gap-2.5">
+              <span className="material-symbols-outlined text-primary text-lg">local_shipping</span>
+              <div>
+                <p className="text-white/40 text-[8px] font-black uppercase tracking-wider">Vehicle / Transit Mode</p>
+                <p className="text-white text-xs font-bold">{serviceProfile.vehicleOrMode}</p>
+              </div>
+            </div>
+            <div className="text-right">
+              <p className="text-white/40 text-[8px] font-black uppercase tracking-wider">Speed</p>
+              <p className="text-primary text-xs font-black">{speedKmh} km/h</p>
+            </div>
+          </div>
+
+          {/* Specific Cargo / Work Order Details */}
           {serviceProfile.isMovingCargo && pickDropReq ? (
-            /* ONLY FOR PICK & DROP MOVING CARGO */
             <div className="p-3.5 rounded-2xl bg-white/[0.03] border border-primary/30 mb-4 space-y-2">
               <div className="flex items-center justify-between">
                 <span className="text-[10px] font-black uppercase tracking-wider text-primary flex items-center gap-1.5">
-                  <span className="material-symbols-outlined text-base">local_shipping</span>
-                  Items to Move ({pickDropReq.items?.join(', ') || 'Household Items'})
+                  <span className="material-symbols-outlined text-base">inventory_2</span>
+                  Cargo Shipment Specification
                 </span>
-                <span className="text-[9px] bg-primary/20 text-primary px-2 py-0.5 rounded font-bold uppercase">
-                  {pickDropReq.vehicle}
+                <span className="text-[9px] bg-primary/20 text-primary px-2 py-0.5 rounded-md font-extrabold uppercase">
+                  ৳ {pickDropReq.fare || '2,450'}
                 </span>
               </div>
-              <p className="text-xs text-white/90 italic font-medium leading-relaxed bg-white/5 p-2 rounded-xl border border-white/5">
-                "{pickDropReq.itemDetails || 'Standard household items.'}"
-              </p>
-              {pickDropReq.specialNotes && pickDropReq.specialNotes.length > 0 && (
-                <div className="flex flex-wrap gap-1.5 pt-0.5">
-                  {pickDropReq.specialNotes.map(n => (
-                    <span key={n} className="bg-primary/10 text-primary text-[8px] font-bold px-1.5 py-0.5 rounded border border-primary/20">
-                      ⚡ {n}
-                    </span>
-                  ))}
-                  <span className="bg-white/10 text-white/70 text-[8px] font-bold px-1.5 py-0.5 rounded">
-                    🏢 {pickDropReq.pickupFloor} ➔ {pickDropReq.dropFloor}
-                  </span>
-                </div>
-              )}
+              <div className="text-xs text-white/90 font-medium bg-white/5 p-2.5 rounded-xl border border-white/5">
+                <p className="text-primary font-bold">{pickDropReq.itemDetails || 'Standard household items.'}</p>
+              </div>
             </div>
           ) : (
-            /* FOR ELECTRICAL, PLUMBING, MAID, SECURITY & GENERAL SERVICES */
             <div className="p-3.5 rounded-2xl bg-white/[0.03] border border-primary/30 mb-4 space-y-2">
               <div className="flex items-center justify-between">
                 <span className="text-[10px] font-black uppercase tracking-wider text-primary flex items-center gap-1.5">
@@ -820,7 +898,6 @@ const LiveTracking: React.FC<Props> = ({ onBack, onArrived, serviceType, service
                 {serviceProfile.workOrderScope.description}
               </p>
 
-              {/* Service tags / equipment certification badges */}
               <div className="flex flex-wrap gap-1.5 pt-0.5">
                 {serviceProfile.workOrderScope.tags.map((tag, i) => (
                   <span key={i} className="bg-primary/10 text-primary text-[8.5px] font-bold px-2 py-0.5 rounded-lg border border-primary/20">
@@ -829,7 +906,6 @@ const LiveTracking: React.FC<Props> = ({ onBack, onArrived, serviceType, service
                 ))}
               </div>
 
-              {/* Address / Location */}
               <div className="flex items-center gap-1.5 text-white/50 text-[9.5px] pt-1">
                 <span className="material-symbols-outlined text-xs text-primary">location_on</span>
                 <span className="truncate">{serviceProfile.workOrderScope.locationSummary}</span>
@@ -838,9 +914,9 @@ const LiveTracking: React.FC<Props> = ({ onBack, onArrived, serviceType, service
           )}
 
           {/* Live Dispatch Feed */}
-          <div className="bg-black/50 rounded-2xl p-3 border border-white/5 mb-4 max-h-20 overflow-hidden font-mono text-[9px]">
+          <div className="bg-black/50 rounded-2xl p-3 border border-white/5 mb-4 max-h-24 overflow-hidden font-mono text-[9px]">
             <div className="space-y-1">
-              {trackingLogs.map((log, i) => (
+              {serviceProfile.trackingLogs.slice(0, 3).map((log, i) => (
                 <div key={i} className={`flex gap-2 ${i === 0 ? 'text-primary' : 'text-white/40'}`}>
                   <span className="font-bold shrink-0">
                     [{new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}]
@@ -848,21 +924,22 @@ const LiveTracking: React.FC<Props> = ({ onBack, onArrived, serviceType, service
                   <span className="truncate">{log}</span>
                 </div>
               ))}
-              <div className="text-white/20">&gt; Live GPS link active • Transmitting status...</div>
+              <div className="text-white/30 flex items-center gap-1.5">
+                <span className="size-1.5 rounded-full bg-emerald-400"></span>
+                <span>Real-Time WebSocket telemetry synchronized with dispatch hub</span>
+              </div>
             </div>
           </div>
 
-
-
-      {/* Completion / Handshake Button */}
-      <button 
-        type="button"
-        onClick={handleConfirmArrival}
-        className="w-full h-14 bg-gradient-to-r from-primary to-[#00b4d8] text-black font-extrabold text-xs tracking-wider rounded-2xl uppercase shadow-[0_4px_20px_rgba(19,236,218,0.3)] hover:brightness-110 active:scale-95 transition-all flex items-center justify-center gap-2"
-      >
-        <span>Confirm Specialist Arrival</span>
-        <span className="material-symbols-outlined text-base">check_circle</span>
-      </button>
+          {/* Completion / Handshake Button */}
+          <button 
+            type="button"
+            onClick={handleConfirmArrival}
+            className="w-full h-14 bg-gradient-to-r from-primary to-[#00b4d8] text-black font-extrabold text-xs tracking-wider rounded-2xl uppercase shadow-[0_4px_20px_rgba(19,236,218,0.3)] hover:brightness-110 active:scale-95 transition-all flex items-center justify-center gap-2"
+          >
+            <span>Confirm Specialist Arrival</span>
+            <span className="material-symbols-outlined text-base font-black">check_circle</span>
+          </button>
         </div>
       </div>
 

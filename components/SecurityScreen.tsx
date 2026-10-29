@@ -103,7 +103,7 @@ const SecurityScreen: React.FC<Props> = ({ onBack }) => {
       <BiometricPromptModal
         isOpen={isTestModalOpen}
         mode="test"
-        title={`Testing ${biometricLabel}`}
+        title={`Authenticate ${biometricLabel}`}
         subtitle="Verifying hardware sensor alignment and encryption"
         onSuccess={handleTestSuccess}
         onCancel={() => setIsTestModalOpen(false)}
@@ -423,47 +423,6 @@ const SecurityScreen: React.FC<Props> = ({ onBack }) => {
           </div>
         </div>
 
-        {/* STANDALONE ADMIN WEB DASHBOARD LAUNCHER */}
-        <div className="mb-6">
-          <div className="p-5 rounded-3xl bg-gradient-to-r from-primary/10 via-emerald-500/10 to-transparent border border-primary/30 space-y-3.5 shadow-xl">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2.5">
-                <div className="size-9 rounded-xl bg-primary/20 text-primary flex items-center justify-center border border-primary/30">
-                  <span className="material-symbols-outlined text-xl">admin_panel_settings</span>
-                </div>
-                <div>
-                  <h4 className="text-white font-black text-xs uppercase tracking-tight">Admin Web Dashboard</h4>
-                  <p className="text-[10px] text-primary font-bold">Autonomous Control Desk</p>
-                </div>
-              </div>
-              <span className="px-2 py-0.5 rounded-full text-[9px] font-black uppercase bg-primary/20 text-primary border border-primary/30">
-                Web Portal
-              </span>
-            </div>
-
-            <p className="text-[11px] text-white/70 leading-relaxed">
-              Launch the standalone desktop & tablet control dashboard to review provider approvals, live service dispatch tracking, and clear manual wallet deposits & withdrawals.
-            </p>
-
-            <button
-              type="button"
-              onClick={() => {
-                try {
-                  localStorage.setItem('duyar_admin_portal_active', 'true');
-                  const u = new URL(window.location.href);
-                  u.searchParams.set('admin', 'true');
-                  window.location.href = u.pathname + u.search;
-                } catch (_) {
-                  window.location.search = '?admin=true';
-                }
-              }}
-              className="w-full h-12 rounded-xl bg-primary text-black font-black text-xs uppercase tracking-widest hover:brightness-110 active:scale-95 transition-all shadow-[0_0_20px_rgba(19,236,218,0.4)] flex items-center justify-center gap-2"
-            >
-              <span className="material-symbols-outlined text-base font-black">open_in_browser</span>
-              <span>Launch Admin Web Portal</span>
-            </button>
-          </div>
-        </div>
 
         {/* Bottom Support Note */}
         <div className="mt-auto text-center pt-2">

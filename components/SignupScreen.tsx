@@ -74,11 +74,11 @@ const SignupScreen: React.FC<Props> = ({ onBack, onSignup }) => {
             <span className="material-symbols-outlined text-white text-lg">arrow_back</span>
           </button>
           <div className="flex items-center gap-2.5">
-            <div className="size-9 rounded-xl overflow-hidden border border-primary/40 shadow-sm bg-[#07100f] shrink-0 p-0.5 flex items-center justify-center">
+            <div className="size-9 shrink-0 flex items-center justify-center select-none">
               <img
                 src="/duyar-symbol.png"
                 alt="Duyar"
-                className="w-full h-full object-cover rounded-lg"
+                className="w-full h-full object-contain filter drop-shadow-[0_2px_8px_rgba(19,236,218,0.3)]"
               />
             </div>
             <div className="text-left">

@@ -177,14 +177,22 @@ const LoginScreen: React.FC<Props> = ({ onLogin, onSignup }) => {
         {/* Brand Header */}
         <div className="flex flex-col items-center mb-6">
           <div className="relative group mb-3">
-            <div className="absolute -inset-1.5 bg-gradient-to-r from-primary/30 via-[#13ecda]/40 to-emerald-500/30 rounded-2xl blur-lg opacity-70 group-hover:opacity-100 transition duration-500"></div>
-            <div className="relative w-20 h-20 rounded-2xl overflow-hidden border border-primary/40 shadow-[0_0_30px_rgba(19,236,218,0.3)] bg-[#07100f] flex items-center justify-center p-1">
+            <div className="absolute inset-0 bg-[#13ecda]/25 rounded-full blur-xl opacity-70 group-hover:opacity-100 transition duration-500 pointer-events-none"></div>
+            <button
+              type="button"
+              onClick={() => {
+                setPhone('01977347402');
+                setError(null);
+              }}
+              title="Click to fill Master Admin (+8801977347402)"
+              className="relative w-24 h-24 flex items-center justify-center p-0 active:scale-95 transition-transform cursor-pointer bg-transparent border-none outline-none"
+            >
               <img
                 src="/duyar-symbol.png"
                 alt="Duyar Emblem"
-                className="w-full h-full object-cover rounded-xl transition-transform duration-500 group-hover:scale-105"
+                className="w-full h-full object-contain pointer-events-none transition-transform duration-500 group-hover:scale-105 filter drop-shadow-[0_8px_24px_rgba(19,236,218,0.35)]"
               />
-            </div>
+            </button>
           </div>
           <div className="flex items-center gap-2">
             <h1 className="text-white text-2xl font-black tracking-tight">Duyar</h1>
@@ -321,8 +329,10 @@ const LoginScreen: React.FC<Props> = ({ onLogin, onSignup }) => {
             </button>
           </p>
 
+
+
           {!isSupabaseConfigured && (
-            <div className="pt-2">
+            <div className="pt-1">
               <button
                 type="button"
                 onClick={() => setShowConfigModal(true)}

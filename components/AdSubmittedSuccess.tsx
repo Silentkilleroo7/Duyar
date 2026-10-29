@@ -34,12 +34,8 @@ const AdSubmittedSuccess: React.FC<Props> = ({ onHome, onViewAds, adTitle }) => 
 
         {/* Preview Card */}
         <div className="w-full glass-card border border-primary/20 rounded-[32px] p-5 flex gap-5 mb-8 animate-in slide-in-from-bottom-8 duration-700 delay-200 bg-primary/5">
-          <div className="w-24 h-24 rounded-2xl overflow-hidden shrink-0 border border-white/10 shadow-2xl">
-            <img 
-              alt="Property" 
-              className="w-full h-full object-cover grayscale-[0.2] hover:grayscale-0 transition-all duration-500" 
-              src="https://lh3.googleusercontent.com/aida-public/AB6AXuAxmDtpjHNe70GAjAAXBtGuMl39nxnUnI_U7Am4V0G-u-2G6teL7LTo7Gq9KjYjBDF4msYNyhcuuK3UgL8dQLg4PExrX59xpPgGVZ7lpzCtqfF_RRcLwUoq9R7nAzo4jY7MEcZIxArS01Ko8YFg-ABPVngb-cQ_a5ZLhU45R42toRLhlokmvBJZn3hq3nwoictghidkSaEKRoE_YokXS0EtRzynBAlhMWP6PpQQHGoRjGHxRciqYKh__0WXzetrRLXpVOxsT_oyKrQ" 
-            />
+          <div className="w-24 h-24 rounded-2xl overflow-hidden shrink-0 border border-white/10 shadow-2xl bg-gradient-to-br from-primary/20 via-primary/5 to-transparent flex items-center justify-center text-primary">
+            <span className="material-symbols-outlined text-4xl">domain</span>
           </div>
           <div className="flex flex-col justify-center min-w-0">
             <div className="flex items-center gap-2 mb-1">

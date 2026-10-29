@@ -2,6 +2,8 @@
 import React, { useState } from 'react';
 import { haptics } from '../haptics';
 import { addMaintenanceTicket } from '../maintenanceStorage';
+import { ProximityRadarModal } from './ProximityRadarModal';
+import { RankedProvider } from '../proximityDispatcher';
 
 interface Props {
   onBack: () => void;
@@ -28,6 +30,7 @@ const SecurityBooking: React.FC<Props> = ({ onBack, onConfirm, userProfile }) =>
   const [userCost, setUserCost] = useState('15000');
   const [instructions, setInstructions] = useState('');
   const [showPreviewModal, setShowPreviewModal] = useState(false);
+  const [showProximityModal, setShowProximityModal] = useState(false);
 
   // Service Location States
   const [serviceLocation, setServiceLocation] = useState({
@@ -573,41 +576,109 @@ const SecurityBooking: React.FC<Props> = ({ onBack, onConfirm, userProfile }) =>
                   setShowPreviewModal(false);
                   onConfirm();
                 }}
-                className="flex-[1.8] py-3.5 rounded-xl bg-primary text-black font-black text-xs uppercase tracking-widest shadow-[0_0_20px_rgba(19,236,218,0.4)] hover:brightness-110 active:scale-95 transition-all flex items-center justify-center gap-2"
+                className="flex-[1.5] py-3.5 rounded-xl bg-primary text-black font-black text-xs uppercase tracking-widest shadow-[0_0_20px_rgba(19,236,218,0.4)] hover:brightness-110 active:scale-95 transition-all flex items-center justify-center gap-2"
               >
                 <span className="material-symbols-outlined text-base font-black">check_circle</span>
                 <span>CONFIRM & SUBMIT</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowPreviewModal(false);
+                  setShowProximityModal(true);
+                }}
+                className="flex-[1.2] py-3.5 rounded-xl bg-primary/20 text-primary border border-primary/40 font-black text-xs uppercase tracking-wider hover:bg-primary/30 active:scale-95 transition-all flex items-center justify-center gap-1"
+              >
+                <span className="material-symbols-outlined text-base">radar</span>
+                <span>NEAREST</span>
               </button>
             </div>
           </div>
         </div>
       )}
 
+      {/* Nearest Security Guard Proximity Radar Modal */}
+      {showProximityModal && (
+        <ProximityRadarModal
+          isOpen={showProximityModal}
+          onClose={() => setShowProximityModal(false)}
+          serviceCategory="Security & CCTV"
+          serviceSubCategory={serviceType}
+          userArea={serviceLocation.area}
+          userAddress={serviceLocation.address}
+          onSelectProvider={(provider: RankedProvider) => {
+            const userPhone = userProfile?.phone || localStorage.getItem('duyar_user_phone') || '+8801977347402';
+            const userName = userProfile?.full_name || 'Resident';
+            const userId = userProfile?.id;
+
+            try {
+              addMaintenanceTicket({
+                title: `Security Guard (${serviceType} • ${provider.name})`,
+                category: 'Security & CCTV',
+                icon: 'shield_person',
+                priority: 'Standard',
+                customerName: userName,
+                customerPhone: userPhone,
+                userId,
+                address: serviceLocation.address,
+                area: serviceLocation.area,
+                price: `৳ ${userCost}`,
+                status: 'ASSIGNED',
+                technicianName: provider.name,
+                technicianRole: `${provider.role} (📍 ${provider.distanceKm} km away • Top Priority)`,
+                technicianPhone: provider.phone,
+                scheduledTime: `Deployment ready • Arriving ~${provider.etaMinutes}m`,
+                description: `Assigned nearest security specialist: ${provider.name} (${provider.distanceKm} km away) | Guarding: ${serviceType} (${guards} guards) in ${serviceLocation.area}`
+              });
+            } catch (e) {
+              console.warn('Security booking persistence error:', e);
+            }
+            setShowProximityModal(false);
+            onConfirm();
+          }}
+        />
+      )}
+
       {/* Sticky Bottom Bar */}
-      <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md p-5 bg-gradient-to-t from-background-dark via-background-dark/95 to-transparent pt-8 z-40">
-        <div className="flex items-center justify-between gap-4">
+      <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md p-4 bg-gradient-to-t from-background-dark via-background-dark/95 to-transparent pt-6 z-40">
+        <div className="flex items-center justify-between gap-2.5">
           <div className="flex flex-col min-w-0 pr-1">
-            <span className="text-white/40 text-[9px] font-black uppercase tracking-wider mb-0.5">Your Offer</span>
-            <div className="flex items-center gap-1 bg-white rounded-xl px-2.5 py-1.5 border border-primary/20">
-              <span className="text-black font-black text-base">৳</span>
+            <span className="text-white/40 text-[9px] font-black uppercase tracking-wider mb-0.5">Offer</span>
+            <div className="flex items-center gap-1 bg-white rounded-xl px-2.5 py-1 border border-primary/20 w-24">
+              <span className="text-black font-black text-sm">৳</span>
               <input 
                 type="number"
                 value={userCost}
                 onChange={(e) => setUserCost(e.target.value)}
-                className="w-20 bg-transparent border-none focus:ring-0 p-0 text-black text-base font-black outline-none"
+                className="w-full bg-transparent border-none focus:ring-0 p-0 text-black text-sm font-black outline-none"
               />
             </div>
           </div>
+
+          {/* Action 1: Find Nearest Security Guard Radar */}
+          <button 
+            type="button"
+            onClick={() => {
+              haptics.selection();
+              setShowProximityModal(true);
+            }}
+            className="flex-[1.2] bg-primary hover:bg-[#0fd9d9] active:scale-[0.98] text-background-dark font-black text-[11px] py-3 px-3 rounded-2xl transition-all shadow-lg shadow-primary/20 tracking-wider uppercase h-12 flex items-center justify-center gap-1.5 border border-primary/50"
+          >
+            <span className="material-symbols-outlined text-base font-black animate-pulse">radar</span>
+            <span>FIND NEAREST</span>
+          </button>
+
+          {/* Action 2: Preview & Submit */}
           <button 
             type="button"
             onClick={() => {
               haptics.selection();
               setShowPreviewModal(true);
             }}
-            className="flex-1 bg-primary hover:bg-[#0fd9d9] active:scale-[0.98] text-background-dark font-black text-xs py-3.5 px-4 rounded-2xl transition-all shadow-lg shadow-primary/20 tracking-wider uppercase h-13 flex items-center justify-center gap-2 italic"
+            className="flex-1 bg-white/10 hover:bg-white/15 active:scale-[0.98] text-white font-black text-[11px] py-3 px-3 rounded-2xl transition-all border border-white/10 tracking-wider uppercase h-12 flex items-center justify-center gap-1"
           >
-            <span className="material-symbols-outlined text-base font-black">visibility</span>
-            <span>PREVIEW & SUBMIT</span>
+            <span className="material-symbols-outlined text-sm font-black">visibility</span>
+            <span>PREVIEW</span>
           </button>
         </div>
       </div>

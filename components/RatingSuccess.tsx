@@ -1,4 +1,5 @@
 import React from 'react';
+import ProviderAvatar from './ProviderAvatar';
 
 interface Props {
   onHome: () => void;
@@ -15,7 +16,7 @@ interface Props {
 const RatingSuccess: React.FC<Props> = ({ onHome, ratingData }) => {
   const providerName = ratingData?.providerName || 'Specialist';
   const providerRole = ratingData?.providerRole || 'Verified Partner';
-  const providerImage = ratingData?.providerImage || 'https://lh3.googleusercontent.com/aida-public/AB6AXuDaX6sDjQxpvUGeB_0Not7GzlTANyX0X71oCtAQZnlfX-kNT3gwtoOBsEs1UeWpAm1ath0eBsxXu5SwYrJt0xkZt--1UO42wIRyfJiY1FbTZm_4n6S6LEOmFKpTF-fwJLpQVvN2yMO8iKFMIaVhmTdA2gkLZWk0SwOMa0Wi8KmJ2TnMkZo9Sql6FCefcWPX7V5nrbVNpjksJVtryOenL8Z38OAV6uzzy9zr7Z20NN-5foEcNq_zB9akXMpZrujmbxb0WY3foZr7iTA';
+  const providerImage = ratingData?.providerImage || '';
   const serviceCategory = ratingData?.serviceCategory || 'Service';
   const ratingScore = ratingData?.rating || 5;
 
@@ -48,9 +49,13 @@ const RatingSuccess: React.FC<Props> = ({ onHome, ratingData }) => {
 
         <div className="w-full mb-8">
           <div className="glass rounded-[2rem] p-5 flex items-center gap-4 text-left border border-white/10 bg-white/[0.03] backdrop-blur-xl shadow-xl">
-            <div 
-              className="w-16 h-16 rounded-2xl bg-center bg-cover border-2 border-primary/30 shrink-0" 
-              style={{ backgroundImage: `url('${providerImage}')` }}
+            <ProviderAvatar 
+              name={providerName}
+              category={serviceCategory}
+              role={providerRole}
+              image={providerImage}
+              size="lg"
+              showOnlineDot={false}
             />
             <div className="flex flex-col flex-1 min-w-0">
               <p className="text-white text-base font-black leading-tight uppercase italic tracking-tight truncate">

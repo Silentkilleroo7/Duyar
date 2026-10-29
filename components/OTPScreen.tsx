@@ -148,17 +148,11 @@ const OTPScreen: React.FC<Props> = ({ phone, expectedOtp, onVerify, onResend }) 
 
         <div className="flex flex-col gap-3 w-full">
           <button 
-            onClick={() => onVerify()}
-            className="w-full h-14 bg-primary text-background-dark text-xs font-black tracking-[0.2em] rounded-2xl shadow-lg shadow-primary/20 uppercase italic transition-all hover:brightness-105 active:scale-[0.98] flex items-center justify-center gap-2"
-          >
-            <span>Skip Verification (Demo Mode)</span>
-            <span className="material-symbols-outlined text-sm">bolt</span>
-          </button>
-          <button 
             onClick={handleVerify}
-            className="w-full h-12 bg-white/5 hover:bg-white/10 text-white/70 hover:text-white text-xs font-semibold tracking-wider rounded-2xl border border-white/10 uppercase transition-all"
+            className="w-full h-14 bg-primary text-background-dark text-xs font-black tracking-[0.2em] rounded-2xl shadow-lg shadow-primary/25 uppercase italic transition-all hover:brightness-105 active:scale-[0.98] flex items-center justify-center gap-2"
           >
-            Submit Entered Code
+            <span>Verify OTP & Continue</span>
+            <span className="material-symbols-outlined text-sm font-black">arrow_forward</span>
           </button>
         </div>
       </main>

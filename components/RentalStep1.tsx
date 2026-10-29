@@ -22,7 +22,7 @@ const RentalStep1: React.FC<Props> = ({ onNext, onBack }) => {
       <div className="space-y-6 flex-1">
         <div className="flex flex-col gap-2">
           <label className="text-white/70 text-xs font-bold uppercase tracking-wider ml-1">Full Name</label>
-          <input className="w-full h-14 rounded-2xl glass-card border-white/10 focus:border-primary px-5 text-white outline-none" placeholder="e.g. Ariful Islam" />
+          <input className="w-full h-14 rounded-2xl glass-card border-white/10 focus:border-primary px-5 text-white outline-none" placeholder="Enter your full name" />
         </div>
         <div className="flex flex-col gap-2">
           <label className="text-white/70 text-xs font-bold uppercase tracking-wider ml-1">Current Address</label>

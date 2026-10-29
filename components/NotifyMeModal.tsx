@@ -49,7 +49,7 @@ const SAMPLE_MATCHING_PROPERTY = {
   type: 'Flat',
   isVerified: true,
   isFeatured: true,
-  image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDfOmiokSYUBoIBV4Q5qSDBSgxAoBCbZd_B2x1rYjOecezRauBO2EqLwSAxE6rNMlbhSnVIxE4dzUkdH6NRKfUKgYaSwy8JSSONyOQ_jZ_OKTNuKK6r4LVg1i4LUSgqMS7M2BGTkW9M8qPx122cW87ZVt-MMyYTGAn3xqJ6Mfy0G7GvnjUZPVVCrjFVtKf6ITEqVbB3TsGF2n-6e8ZIEW0Yp9VAqYn9agAC51wY2X8iMEQ1B2cuAaddVvz_dl9V6DTcEILS58B_Ue0',
+  image: '',
   tags: ['Pet Friendly', 'Balcony', 'Parking', 'Elevator', 'Security Guard', 'Generator']
 };
 

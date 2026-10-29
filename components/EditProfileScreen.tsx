@@ -117,7 +117,7 @@ const EditProfileScreen: React.FC<Props> = ({ onBack, onSave, userProfile }) => 
             <span className="material-symbols-outlined text-primary/40 mr-4">person</span>
             <input 
               className="w-full bg-transparent border-none text-white focus:ring-0 text-base font-bold italic" 
-              placeholder="e.g. Ariful Islam"
+              placeholder="Enter your full name"
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
             />

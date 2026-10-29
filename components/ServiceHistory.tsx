@@ -338,9 +338,9 @@ const ServiceHistory: React.FC<Props> = ({
     
     if (isPd) {
       acceptPickDropRequest(srv.id, {
-        name: 'Rakibul Islam',
+        name: 'Logistics Pilot',
         phone: '+880 1819-234567',
-        vehicleNo: 'Dhaka Metro-Ta 14-8821'
+        vehicleNo: 'Dhaka Metro Verified'
       });
       showToast(`Moving request #${srv.id} accepted! Status is now ACTIVE.`);
     } else {
@@ -348,8 +348,8 @@ const ServiceHistory: React.FC<Props> = ({
       const isMaid = srv.title.toLowerCase().includes('maid') || srv.title.toLowerCase().includes('housekeeping');
       
       acceptMaintenanceTicket(srv.id, {
-        name: isSec ? 'Habibur Rahman' : isMaid ? 'Fatema Begum' : 'Md. Kabir Hossain',
-        role: isSec ? 'Senior Security Officer • 5.0★' : isMaid ? 'Verified Housekeeper • 4.9★' : 'Licensed Senior Specialist • 4.9★',
+        name: isSec ? 'Security Specialist' : isMaid ? 'Housekeeping Specialist' : 'Maintenance Specialist',
+        role: isSec ? 'Senior Security Specialist' : isMaid ? 'Verified Housekeeper' : 'Licensed Field Specialist',
         phone: isSec ? '+880 1855-667788' : isMaid ? '+880 1744-889900' : '+880 1712-984512'
       });
       showToast(`Request #${srv.id} accepted by provider! Status is now ACTIVE.`);
@@ -462,7 +462,14 @@ const ServiceHistory: React.FC<Props> = ({
                 : 'bg-amber-500/10 text-amber-300 border border-amber-500/20 hover:bg-amber-500/20'
             }`}
           >
-            <span className="size-1.5 rounded-full bg-amber-400 animate-pulse"></span>
+            {pendingCount > 0 ? (
+              <span className="relative flex size-2 shrink-0">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75" />
+                <span className={`relative inline-flex rounded-full size-2 ${filter === 'PENDING' ? 'bg-black' : 'bg-amber-400'}`} />
+              </span>
+            ) : (
+              <span className="size-1.5 rounded-full bg-amber-400/60" />
+            )}
             <span>{isBn ? 'অপেক্ষমাণ' : 'PENDING'}</span>
             {pendingCount > 0 && (
               <span className={`text-[9px] px-1.5 py-0.2 rounded-full font-bold ${filter === 'PENDING' ? 'bg-black/30 text-black' : 'bg-amber-400/20 text-amber-300'}`}>
@@ -538,6 +545,43 @@ const ServiceHistory: React.FC<Props> = ({
       {/* Main Request Stream */}
       <main className="flex-1 overflow-y-auto px-5 pt-4 pb-40 no-scrollbar relative z-10">
         <div className="flex flex-col gap-4">
+          {/* Subtle Live Broadcast Radar Banner when viewing Pending Requests */}
+          {(filter === 'PENDING' || (filter === 'ALL' && pendingCount > 0)) && (
+            <div className="p-3.5 rounded-2xl bg-gradient-to-r from-amber-500/15 via-amber-500/10 to-transparent border border-amber-500/30 flex items-center justify-between gap-3 shadow-lg shadow-amber-500/5 backdrop-blur-md animate-in fade-in slide-in-from-top-2 duration-300 relative overflow-hidden">
+              <div className="absolute -left-6 -top-6 size-24 bg-amber-400/10 rounded-full blur-xl pointer-events-none" />
+              
+              <div className="flex items-center gap-3 min-w-0 relative z-10">
+                <div className="relative flex items-center justify-center size-8 shrink-0">
+                  <span className="absolute size-8 rounded-full bg-amber-400/25 animate-ping" style={{ animationDuration: '2.4s' }} />
+                  <span className="absolute size-5 rounded-full bg-amber-400/35 animate-pulse" />
+                  <div className="relative size-3.5 rounded-full bg-gradient-to-tr from-amber-500 to-amber-300 flex items-center justify-center shadow-[0_0_12px_#fbbf24]">
+                    <span className="material-symbols-outlined text-[10px] text-black font-black">sensors</span>
+                  </div>
+                </div>
+                <div className="flex flex-col min-w-0">
+                  <div className="flex items-center gap-2">
+                    <span className="text-[11px] font-black uppercase tracking-wider text-amber-300 truncate">
+                      {isBn ? 'নিকটবর্তী সেবা প্রদানকারীদের কাছে লাইভ সম্প্রচারিত হচ্ছে' : 'Broadcasting to Nearby Providers'}
+                    </span>
+                  </div>
+                  <p className="text-[9.5px] text-white/60 font-medium truncate mt-0.5">
+                    {isBn 
+                      ? 'আপনার এলাকার অনুমোদিত বিশেষজ্ঞ ও কর্মীদের ডিভাইসে রিয়েল-টাইমে নোটিফিকেশন পৌঁছাচ্ছে' 
+                      : 'Dispatching real-time notifications to verified specialists within your area'}
+                  </p>
+                </div>
+              </div>
+
+              {/* Signal wave indicator */}
+              <div className="hidden sm:flex items-center gap-1 shrink-0 px-2.5 py-1.5 rounded-xl bg-amber-400/10 border border-amber-400/25">
+                <span className="size-1.5 rounded-full bg-amber-400 animate-ping shrink-0" />
+                <span className="text-[9px] font-mono text-amber-300 font-bold uppercase tracking-wider">
+                  {pendingCount} {pendingCount === 1 ? 'LIVE' : 'LIVE'}
+                </span>
+              </div>
+            </div>
+          )}
+
           {displayedList.map((srv) => {
             const isPending = srv.rawStatus === 'PENDING';
             const isActive = srv.rawStatus === 'ACTIVE';
@@ -559,16 +603,25 @@ const ServiceHistory: React.FC<Props> = ({
               >
                 {/* Header & Icon */}
                 <div className="flex items-start gap-4">
-                  <div className={`size-14 rounded-[1.2rem] flex items-center justify-center shrink-0 border ${
-                    isPending 
-                      ? 'bg-amber-500/10 text-amber-300 border-amber-500/30' 
-                      : isActive 
-                      ? 'bg-primary/10 text-primary border-primary/30 shadow-[0_0_15px_rgba(19,236,218,0.2)]' 
-                      : isConfirmed 
-                      ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30 shadow-[0_0_15px_rgba(52,211,153,0.2)]' 
-                      : 'bg-white/5 text-white/50 border-white/10'
-                  }`}>
-                    <span className="material-symbols-outlined text-3xl font-light">{srv.icon}</span>
+                  <div className="relative shrink-0">
+                    {/* Subtle Concentric Ripple Waves for Pending Broadcasting State */}
+                    {isPending && (
+                      <>
+                        <span className="absolute -inset-1.5 rounded-[1.4rem] border-2 border-amber-400/40 animate-ping opacity-60 pointer-events-none" style={{ animationDuration: '2.4s' }} />
+                        <span className="absolute -inset-3 rounded-[1.6rem] border border-amber-400/20 animate-ping opacity-30 pointer-events-none" style={{ animationDuration: '3.2s', animationDelay: '0.8s' }} />
+                      </>
+                    )}
+                    <div className={`size-14 rounded-[1.2rem] flex items-center justify-center border relative z-10 ${
+                      isPending 
+                        ? 'bg-amber-500/15 text-amber-300 border-amber-500/40 shadow-[0_0_20px_rgba(245,158,11,0.25)]' 
+                        : isActive 
+                        ? 'bg-primary/10 text-primary border-primary/30 shadow-[0_0_15px_rgba(19,236,218,0.2)]' 
+                        : isConfirmed 
+                        ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30 shadow-[0_0_15px_rgba(52,211,153,0.2)]' 
+                        : 'bg-white/5 text-white/50 border-white/10'
+                    }`}>
+                      <span className="material-symbols-outlined text-3xl font-light">{srv.icon}</span>
+                    </div>
                   </div>
 
                   <div className="flex-1 min-w-0">
@@ -584,9 +637,12 @@ const ServiceHistory: React.FC<Props> = ({
                     {/* Prominent Stage Badges */}
                     <div className="flex items-center gap-2 mt-1.5">
                       {isPending && (
-                        <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-400/15 border border-amber-400/40 text-amber-300">
-                          <span className="size-1.5 rounded-full bg-amber-400 animate-ping"></span>
-                          <span className="text-[9.5px] font-black uppercase tracking-wider">{isBn ? 'অপেক্ষমাণ আবেদন' : 'PENDING REQUEST'}</span>
+                        <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-400/15 border border-amber-400/40 text-amber-300 relative overflow-hidden">
+                          <span className="relative flex size-2">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                            <span className="relative inline-flex rounded-full size-2 bg-amber-400 shadow-[0_0_6px_#fbbf24]"></span>
+                          </span>
+                          <span className="text-[9.5px] font-black uppercase tracking-wider">{isBn ? 'অপেক্ষমাণ • সরাসরি সম্প্রচারিত' : 'BROADCASTING TO PROVIDERS'}</span>
                         </div>
                       )}
 
@@ -618,6 +674,12 @@ const ServiceHistory: React.FC<Props> = ({
                     <p className="text-white/30 text-[9px] truncate mt-0.5">
                       📍 {srv.address}
                     </p>
+                    {((srv.providerRole && srv.providerRole.includes('km')) || (srv.originalData?.driverVehicleNo && srv.originalData.driverVehicleNo.includes('km'))) && (
+                      <div className="mt-1.5 inline-flex items-center gap-1.5 px-2 py-0.5 rounded-lg bg-primary/15 border border-primary/30 text-[9.5px] font-black text-primary uppercase tracking-wide shadow-sm">
+                        <span className="material-symbols-outlined text-xs font-black animate-pulse">radar</span>
+                        <span>{isBn ? 'নিকটতম অগ্রাধিকারপ্রাপ্ত কর্মী নিযুক্ত' : 'Nearest Priority Dispatch'} • {srv.providerRole?.match(/\d+(\.\d+)?\s*km/)?.[0] || srv.originalData?.driverVehicleNo?.match(/\d+(\.\d+)?\s*km/)?.[0] || 'Local Zone'}</span>
+                      </div>
+                    )}
                     {srv.originalData?.description && (
                       <p className="text-primary/90 text-[10px] font-medium mt-1.5 bg-primary/5 px-2 py-1 rounded-lg border border-primary/10 line-clamp-2">
                         ⏱️ {srv.originalData.description}
@@ -636,27 +698,74 @@ const ServiceHistory: React.FC<Props> = ({
                   </div>
                 </div>
 
-                {/* 1. STAGE: PENDING - Awaiting Provider Acceptance */}
+                {/* 1. STAGE: PENDING - Awaiting Provider Acceptance & Live Broadcast Visualizer */}
                 {isPending && (
-                  <div className="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-white flex flex-col gap-2.5 animate-in fade-in duration-300">
-                    <div className="flex items-center justify-between text-amber-300 text-[10px] font-black uppercase tracking-wider">
-                      <div className="flex items-center gap-1.5">
-                        <span className="material-symbols-outlined text-sm animate-spin">sync</span>
-                        <span>{isBn ? 'সেবা প্রদানকারীর অনুমোদনের অপেক্ষায়' : 'Pending Provider Acceptance'}</span>
+                  <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-white flex flex-col gap-3 animate-in fade-in duration-300 relative overflow-hidden">
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/10 rounded-full blur-2xl pointer-events-none" />
+
+                    {/* Broadcasting Header with Radar Wave & Status */}
+                    <div className="flex items-center justify-between text-amber-300 text-[10px] font-black uppercase tracking-wider relative z-10">
+                      <div className="flex items-center gap-2">
+                        <div className="relative flex items-center justify-center size-5">
+                          <span className="absolute size-5 rounded-full bg-amber-400/30 animate-ping" style={{ animationDuration: '2s' }} />
+                          <span className="relative size-2 rounded-full bg-amber-400 shadow-[0_0_8px_#fbbf24]" />
+                        </div>
+                        <span className="text-[10.5px] font-black tracking-tight text-amber-300">
+                          {isBn ? 'সেবা প্রদানকারীর অনুমোদনের অপেক্ষায়' : 'Pending Provider Acceptance'}
+                        </span>
                       </div>
-                      <span className="px-2 py-0.5 rounded bg-amber-400/20 text-amber-300 text-[8.5px]">
-                        {isBn ? 'প্রচারিত' : 'Broadcasted'}
-                      </span>
+                      <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-amber-400/20 text-amber-300 border border-amber-400/30 text-[8.5px] font-mono font-bold">
+                        <span className="size-1.5 rounded-full bg-amber-400 animate-pulse" />
+                        <span>{isBn ? 'লাইভ সম্প্রচার সক্রিয়' : 'LIVE BROADCAST'}</span>
+                      </div>
                     </div>
+
+                    {/* Radar Pulse / Ripple Broadcast Bar */}
+                    <div className="relative overflow-hidden rounded-xl bg-black/40 border border-amber-500/25 p-3 flex items-center justify-between gap-3 backdrop-blur-md">
+                      <div className="flex items-center gap-3 min-w-0">
+                        {/* Pulsing Signal Beacon */}
+                        <div className="relative flex items-center justify-center size-9 shrink-0">
+                          <span className="absolute size-9 rounded-full bg-amber-400/20 animate-ping" style={{ animationDuration: '2.2s' }} />
+                          <span className="absolute size-6 rounded-full bg-amber-400/30 animate-pulse" />
+                          <div className="relative size-5 rounded-full bg-gradient-to-tr from-amber-500 to-amber-300 flex items-center justify-center shadow-[0_0_12px_rgba(251,191,36,0.8)]">
+                            <span className="material-symbols-outlined text-[13px] text-black font-black">sensors</span>
+                          </div>
+                        </div>
+
+                        <div className="flex flex-col min-w-0">
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-[10px] font-black uppercase tracking-wider text-amber-200 truncate">
+                              {isBn ? 'নিকটবর্তী প্রদানকারীদের কাছে সিগন্যাল পাঠানো হচ্ছে' : 'Broadcasting Signal to Nearby Providers'}
+                            </span>
+                          </div>
+                          <p className="text-[9.5px] text-white/60 font-medium leading-tight mt-0.5">
+                            {isBn 
+                              ? 'আপনার এলাকার অনুমোদিত বিশেষজ্ঞ ও কর্মীদের ডিভাইসে রিয়েল-টাইমে নোটিফিকেশন পৌঁছে দেওয়া হয়েছে' 
+                              : 'Real-time broadcast dispatched to verified specialists within radius'}
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Equalizer / Audio Wave Pulse Bars */}
+                      <div className="flex items-center gap-1 shrink-0 px-2 py-1.5 rounded-lg bg-amber-400/10 border border-amber-400/20">
+                        <span className="w-0.5 h-3 bg-amber-400 rounded-full animate-pulse" style={{ animationDuration: '0.8s' }} />
+                        <span className="w-0.5 h-5 bg-amber-300 rounded-full animate-pulse" style={{ animationDuration: '0.6s', animationDelay: '0.15s' }} />
+                        <span className="w-0.5 h-2.5 bg-amber-400 rounded-full animate-pulse" style={{ animationDuration: '0.9s', animationDelay: '0.3s' }} />
+                        <span className="w-0.5 h-4.5 bg-amber-300 rounded-full animate-pulse" style={{ animationDuration: '0.7s', animationDelay: '0.45s' }} />
+                        <span className="w-0.5 h-2 bg-amber-400 rounded-full animate-pulse" style={{ animationDuration: '0.85s', animationDelay: '0.2s' }} />
+                      </div>
+                    </div>
+
                     <p className="text-[10.5px] text-white/80 leading-relaxed font-medium">
                       {isBn 
-                        ? `আপনার ${srv.price} মূল্যের সেবা অনুরোধটি সিস্টেমে যুক্ত হয়েছে। বিশেষজ্ঞ বা কর্মী এটি গ্রহণ করলেই সরাসরি চ্যাট ও দরদাম শুরু হবে।` 
-                        : `Your service request of ${srv.price} has been broadcasted. Once a specialist or guard accepts, this request becomes ACTIVE to start chat and price negotiations.`}
+                        ? `আপনার ${srv.price} মূল্যের সেবা অনুরোধটি সম্প্রচারিত হচ্ছে। কোনো কর্মী গ্রহণ করলেই সরাসরি চ্যাট ও দরদাম শুরু হবে।` 
+                        : `Your service request of ${srv.price} is currently being broadcasted. Once a provider accepts, this request becomes ACTIVE for live chat & negotiation.`}
                     </p>
+
                     <button
                       type="button"
                       onClick={() => handleAcceptByProvider(srv)}
-                      className="mt-1 py-2.5 px-4 rounded-xl bg-amber-400 hover:bg-amber-300 text-black font-black text-[10px] uppercase tracking-wider transition-all active:scale-95 flex items-center justify-center gap-2 shadow-md shadow-amber-400/25"
+                      className="mt-0.5 py-2.5 px-4 rounded-xl bg-amber-400 hover:bg-amber-300 text-black font-black text-[10px] uppercase tracking-wider transition-all active:scale-95 flex items-center justify-center gap-2 shadow-md shadow-amber-400/25"
                     >
                       <span className="material-symbols-outlined text-base font-black">handshake</span>
                       <span>{isBn ? 'সেবা প্রদানকারী হিসেবে আবেদন গ্রহণ করুন' : 'Accept Request as Service Provider'}</span>

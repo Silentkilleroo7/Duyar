@@ -80,16 +80,9 @@ const MyAdvertisements: React.FC<Props> = ({ onBack, onBoost, userProfile }) => 
 
   return (
     <div className="font-display bg-background-light dark:bg-background-dark text-white antialiased min-h-screen relative selection:bg-primary/20">
-      {/* Map Overlay Background */}
-      <div className="fixed inset-0 z-0 opacity-20 pointer-events-none">
-        <div 
-          className="w-full h-full bg-center bg-no-repeat bg-cover filter brightness-50" 
-          style={{
-            backgroundImage: 'url("https://lh3.googleusercontent.com/aida-public/AB6AXuBcR4DS4jyrZ6wuWIL3bjOxOgk9ppbDuJhhvbDHEoc2epeV6PtKazeK5DHym1dDutWg26E2CEsXg_IOuXvaqDGrBTxqIT5nNpYliCernF1wFZo3jw6b-sP3F6ZaZqT9UQjMm8UDwr3ls-CeXLp1DdKoBIiW3s_4jCwGbN7fLdkvPoXGPCb_DYNxjem_mzpu3uiXJqi39P-7iARglwvmb6BcmCkSPzsNojzK4YFth56qeNG1ninajUK6ICgEmqOU4UAY-r3nevbC78g")',
-            maskImage: 'linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 100%)',
-            WebkitMaskImage: 'linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 100%)'
-          }}
-        ></div>
+      {/* Ambient Gradient Background */}
+      <div className="fixed inset-0 z-0 pointer-events-none">
+        <div className="w-full h-full bg-radial from-primary/10 via-transparent to-transparent opacity-30"></div>
       </div>
 
       <div className="relative z-10 flex flex-col min-h-screen max-w-md mx-auto overflow-x-hidden">

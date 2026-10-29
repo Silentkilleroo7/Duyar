@@ -50,7 +50,7 @@ const BookVisitScreen: React.FC<Props> = ({ onBack, onConfirm, property, userPro
       addPropertyVisit({
         propertyId: property?.id || 'prop-1',
         propertyTitle: property?.title || 'Modern 3BHK Luxury Flat',
-        propertyImage: property?.image || 'https://lh3.googleusercontent.com/aida-public/AB6AXuBNyzqhaWMRKt20pJlTTYPx97uhBwkRsJJIQP9bBD6G7myv3QPBoOCggmodkBmZ1crZZHI0QxaGIg8GsebmyLZzbhzqhrfMgI_EhOgwIbksb4AxagQfj9S2hqUWtTwIP01gy21hTJskVnRXUzZrEiYx_FBXn7aFyxgMC_LufEH1D2O0qFOOniM2AX_SeU3bZ2wkSz58ZJeTaV-QEnX32StqyDET-FS8sUErR2s5sXLHZS-NFj3jlql5I9Uy9XopupquPiVzRn2X39M',
+        propertyImage: property?.image || '',
         propertyLocation: property?.location || 'Banani, Dhaka',
         propertyPrice: property?.price || '৳ 45,000',
         scheduledDate: dates[selectedDateIdx]?.full || 'Upcoming Date',
@@ -69,7 +69,7 @@ const BookVisitScreen: React.FC<Props> = ({ onBack, onConfirm, property, userPro
   return (
     <div className="relative z-10 flex min-h-screen w-full flex-col max-w-[430px] mx-auto px-4 pt-6 pb-10 font-display text-white selection:bg-primary/30">
       <div className="absolute inset-0 z-[-1] opacity-40 grayscale contrast-125">
-        <div className="w-full h-full bg-center bg-cover" style={{backgroundImage: "url('https://lh3.googleusercontent.com/aida-public/AB6AXuBxvW7zy9tqzHAsPw3jMFdMYBcoyjXMnQJpT-yf9wDmSoPkXPeDVBG2LSvvC1DY6EfY0_E1RKlvBCjviKk0TgV3dlXSa8EaR5pLFB0o-mhK9CSL-kyppUSK4dz3LGeGgc3jNHPz1JqsBO0m10Ur_p7PGa5QRNAWLDTozXTEwGNOruhtEz0SPkYv-whnidxz_-2UHY0OxyFeAB428tu3SAQ-u2Gkvd1DEazq7JQgq691SLHwx0sb-VgUGbe9tHuj8NkpP1ARvRTEKIA')"}}></div>
+        <div className="w-full h-full bg-center bg-cover" style={{backgroundImage: "url('')"}}></div>
       </div>
       
       <div className="flex items-center justify-between mb-8">
@@ -84,7 +84,13 @@ const BookVisitScreen: React.FC<Props> = ({ onBack, onConfirm, property, userPro
 
       <div className="glass-card rounded-2xl p-3 mb-8 border border-white/10">
         <div className="flex items-center gap-4">
-          <div className="size-20 rounded-xl bg-center bg-cover shrink-0" style={{backgroundImage: `url("${property?.image || 'https://lh3.googleusercontent.com/aida-public/AB6AXuBNyzqhaWMRKt20pJlTTYPx97uhBwkRsJJIQP9bBD6G7myv3QPBoOCggmodkBmZ1crZZHI0QxaGIg8GsebmyLZzbhzqhrfMgI_EhOgwIbksb4AxagQfj9S2hqUWtTwIP01gy21hTJskVnRXUzZrEiYx_FBXn7aFyxgMC_LufEH1D2O0qFOOniM2AX_SeU3bZ2wkSz58ZJeTaV-QEnX32StqyDET-FS8sUErR2s5sXLHZS-NFj3jlql5I9Uy9XopupquPiVzRn2X39M'}")`}}></div>
+          {property?.image && !property.image.includes('aida-public') ? (
+            <div className="size-20 rounded-xl bg-center bg-cover shrink-0 border border-white/10" style={{backgroundImage: `url("${property.image}")`}}></div>
+          ) : (
+            <div className="size-20 rounded-xl bg-gradient-to-br from-primary/20 via-primary/5 to-transparent border border-primary/30 flex items-center justify-center text-primary shrink-0">
+              <span className="material-symbols-outlined text-3xl">apartment</span>
+            </div>
+          )}
           <div className="flex flex-col">
             <p className="text-white text-base font-bold leading-tight">{property?.title || 'Modern 3BHK Luxury Flat'}</p>
             <div className="flex items-center gap-1 mt-1 text-white/60">

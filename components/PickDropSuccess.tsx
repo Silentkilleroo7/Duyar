@@ -17,7 +17,7 @@ const PickDropSuccess: React.FC<Props> = ({ onHome, onTrack }) => {
     <div className="relative flex min-h-screen w-full flex-col items-center justify-center p-6 overflow-hidden bg-background-dark font-display max-w-[430px] mx-auto">
       {/* Subtle Map Background */}
       <div className="absolute inset-0 z-0">
-        <div className="w-full h-full bg-center bg-no-repeat bg-cover opacity-20 grayscale contrast-125" style={{backgroundImage: "url('https://lh3.googleusercontent.com/aida-public/AB6AXuB_nRSmpA4ZLr0DobLF01OJJAcoapS_-7XqZXgeVcu6L7eNrL9WMKknDWOVKEMNt1vG1MST8PAlgfjGmD1wRucIYi5Et1VFRwnRP7UX4D7rOf1KrbQ91rg9_xvVl5kOv3KmerOafPDfDqRxKDnKVxUvm4LYx-WPWZzYYMpefr-fGuYaMe-LMPY_f64YHjVjWWq0Dc9lijFI3Eapu6n_HVoGoaf6_ygDaRHBF6UpMhP_6Tri4zi_VH5HVdkbtaxTm2kD3rZ8xR7xScc')"}}></div>
+        <div className="w-full h-full bg-center bg-no-repeat bg-cover opacity-20 grayscale contrast-125" style={{backgroundImage: "url('')"}}></div>
         <div className="absolute inset-0 map-overlay"></div>
       </div>
 
@@ -34,7 +34,7 @@ const PickDropSuccess: React.FC<Props> = ({ onHome, onTrack }) => {
             Pick & <span className="text-primary">Drop Requested!</span>
           </h1>
           <p className="text-white/60 text-xs font-medium leading-relaxed px-4">
-            Driver {request?.driverName || 'Rakibul Islam'} has been dispatched with item move details.
+            Driver {request?.driverName || 'Assigned Logistics Pilot'} has been dispatched with item move details.
           </p>
         </div>
 

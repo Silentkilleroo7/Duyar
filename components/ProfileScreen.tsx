@@ -8,6 +8,8 @@ import {
   isUserApprovedLandlord, 
   isUserApprovedLocator 
 } from '../providerApplicationsStorage';
+import DuyarLogo from './DuyarLogo';
+import { isRealUserUploadedImage } from './ProviderAvatar';
 
 interface Props {
   onBack: () => void;
@@ -82,6 +84,7 @@ const translations = {
     postPropertySub: "Instant Live On Platform Map",
     myAds: "My Advertisements",
     myAdsSub: "Manage & Boost Listings",
+    adminConsole: "Admin Command Center",
   },
   BN: {
     systemRoot: "প্রধান নিয়ন্ত্রণ কেন্দ্র",
@@ -121,6 +124,7 @@ const translations = {
     postPropertySub: "ম্যাপে তাৎক্ষণিক লাইভ হবে",
     myAds: "আমার বিজ্ঞাপনসমূহ",
     myAdsSub: "বিজ্ঞাপন পরিচালনা ও বুস্ট করুন",
+    adminConsole: "অ্যাডমিন কন্ট্রোল সেন্টার",
   }
 };
 
@@ -169,7 +173,7 @@ const ProfileScreen: React.FC<Props> = ({
   const currentLang = lang || internalLang;
   const t = translations[currentLang];
 
-  const avatar = userProfile?.avatar_url || "https://lh3.googleusercontent.com/aida-public/AB6AXuBkp67SZeSw9vt00YI0l3V1ISUT1SF1EDhvwqELxScDYEaI-S-6v9xlwW1zCXjKg1pTUvFuMEq53nTFmfSmeeFkDo97tGGm3ODZqR8zKDSo_oXheuMYJtlAwHagYalee372CqN-33nIA4B__EDWlZq4MjEYI3stEMjQkRCEX7-1pV0foyJq4OM6vYJWVzHZzcGWNt-wtuAqMtBx1GzZE5B2cU_zQN2ePUWesGfU4Tr6MPOoybPdRR-PKpfLi3eMgB4Sbb-13cGKnAY";
+  const avatar = isRealUserUploadedImage(userProfile?.avatar_url) ? userProfile.avatar_url : '';
   const name = userProfile?.full_name || t.defaultName;
 
   const isApprovedLandlord = isUserApprovedLandlord(userProfile) || appStatuses.landlord === 'APPROVED';
@@ -196,10 +200,16 @@ const ProfileScreen: React.FC<Props> = ({
         <div className="flex flex-col items-center gap-6 mt-4">
           <div className="relative group">
             <div className="size-28 rounded-[2.5rem] border-2 border-primary/30 p-1.5 transition-all group-hover:border-primary duration-500 shadow-[0_0_40px_rgba(19,236,218,0.15)]">
-              <div 
-                className="w-full h-full rounded-[2rem] bg-center bg-no-repeat bg-cover shadow-2xl bg-background-dark/40" 
-                style={{ backgroundImage: `url("${avatar}")` }}
-              ></div>
+              {avatar ? (
+                <div 
+                  className="w-full h-full rounded-[2rem] bg-center bg-no-repeat bg-cover shadow-2xl bg-background-dark/40" 
+                  style={{ backgroundImage: `url("${avatar}")` }}
+                />
+              ) : (
+                <div className="w-full h-full rounded-[2rem] bg-gradient-to-br from-[#0c2420] via-[#0f3630] to-[#081514] border border-primary/30 flex items-center justify-center text-primary text-3xl font-black shadow-inner">
+                  <span>{name.split(' ').filter(Boolean).map((n: string) => n[0]).slice(0, 2).join('').toUpperCase() || 'DY'}</span>
+                </div>
+              )}
             </div>
             <button 
               type="button"
@@ -215,7 +225,7 @@ const ProfileScreen: React.FC<Props> = ({
             <h1 className="text-2xl font-black tracking-tight uppercase italic leading-none">{name}</h1>
             <div className="mt-3 inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20">
               <span className="size-1.5 rounded-full bg-primary animate-pulse"></span>
-              <p className="text-primary text-[9px] font-black uppercase tracking-[0.2em]">{isAdmin ? t.systemAdmin : t.premiumMember}</p>
+              <p className="text-primary text-[9px] font-black uppercase tracking-[0.2em]">{t.premiumMember}</p>
             </div>
           </div>
         </div>
@@ -223,21 +233,6 @@ const ProfileScreen: React.FC<Props> = ({
 
       <main className="flex-1 overflow-y-auto px-5 pt-8 pb-44 no-scrollbar relative z-10">
         <section className="space-y-8">
-          {/* Admin Section */}
-          {isAdmin && (
-            <div>
-              <p className="text-[9px] font-black text-primary uppercase tracking-[0.3em] mb-4 ml-2 italic leading-none">{t.systemRoot}</p>
-              <MenuItem 
-                id="menu-admin-hub"
-                icon="admin_panel_settings" 
-                label={t.conciergeTerminal} 
-                onClick={onAdminHub || (() => {})} 
-                authorizedText={t.accessAuthorized}
-                reviewingText={t.reviewingData}
-              />
-            </div>
-          )}
-
           {/* Verified Property Publisher Section - ONLY visible to approved Landlords and approved Locators */}
           {canPost && (
             <div id="verified-property-publisher-section" className="animate-in fade-in slide-in-from-top-2 duration-300">
@@ -248,7 +243,7 @@ const ProfileScreen: React.FC<Props> = ({
                 </p>
                 <span className="text-[8px] font-black uppercase px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 flex items-center gap-1">
                   <span className="size-1 rounded-full bg-emerald-400 animate-pulse"></span>
-                  {isAdmin ? 'System Master' : isApprovedLandlord ? (currentLang === 'BN' ? 'অনুমোদিত বাড়ি মালিক' : 'Approved Landlord') : (currentLang === 'BN' ? 'অনুমোদিত লোকেটর' : 'Approved Locator')}
+                  {isApprovedLandlord ? (currentLang === 'BN' ? 'অনুমোদিত বাড়ি মালিক' : 'Approved Landlord') : (currentLang === 'BN' ? 'অনুমোদিত লোকেটর' : 'Approved Locator')}
                 </span>
               </div>
               <div className="flex flex-col gap-2">
@@ -433,20 +428,19 @@ const ProfileScreen: React.FC<Props> = ({
             </button>
           </div>
 
-          {/* Duyar Official Brand Badge */}
+          {/* Duyar Official Brand Badge & Logo Story */}
           <div className="pt-8 pb-4 flex flex-col items-center justify-center text-center">
-            <div className="size-16 rounded-2xl overflow-hidden border border-primary/30 shadow-[0_0_20px_rgba(19,236,218,0.25)] bg-[#07100f] mb-3 p-1.5 flex items-center justify-center">
-              <img
-                src="/duyar-symbol.png"
-                alt="Duyar"
-                className="w-full h-full object-cover rounded-xl"
-              />
+            <div className="mb-2">
+              <DuyarLogo size={68} glow={true} />
             </div>
-            <p className="text-[11px] font-black uppercase tracking-widest text-primary flex items-center gap-1.5">
-              <span>Duyar Real Estate Platform</span>
+            <p className="text-[12px] font-black uppercase tracking-widest text-primary flex items-center gap-1.5">
+              <span>Duyar Real Estate &amp; Super App</span>
               <span className="material-symbols-outlined text-xs text-primary">verified</span>
             </p>
-            <p className="text-[9px] text-white/40 tracking-wider mt-0.5">Version 2.2 • Verified Resident Network</p>
+            <p className="text-[10px] text-white/70 tracking-wide mt-0.5">
+              দুয়ার (The Door) — The Open Gateway to Smart Living
+            </p>
+            <p className="text-[9px] text-white/40 tracking-wider mt-0.5">Version 2.4 • Verified Resident Network</p>
           </div>
         </section>
       </main>

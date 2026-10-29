@@ -46,7 +46,7 @@ const BoostPayment: React.FC<Props> = ({ plan, onBack, onPay }) => {
         <div className="px-6 flex flex-col gap-3 mb-8">
           <label className="glass-card flex items-center gap-4 rounded-xl p-4 flex-row cursor-pointer transition-all active:bg-white/5">
             <div className="size-10 rounded-lg bg-[#e2136e]/10 flex items-center justify-center border border-[#e2136e]/20">
-              <div className="size-8 bg-center bg-no-repeat bg-contain" style={{ backgroundImage: "url('https://lh3.googleusercontent.com/aida-public/AB6AXuBR8O2HhObfxpzmL98aCRGDeWC7SXsI8gN5IfRFsTWEfB7oyGXbU96OE1jfvD76r5K7lCq_fPzJMN2PcALczBW9l6U7Fk5_uVxQ3VBodaKHdsVXiYIT4igw0e2OXMFML18tMXRC3BBOyh9Ha-Rb7RUryLvXOFSe_nia9C6nIfsqpFio7aRXEdus2u6_OwkidOx_OaZRemklbg5y96BYX9dMv7-NeHqXO7m0o7DVvHLuSCcPT9zfjSzyt2r2Budstbh9l0FNdKHjf84')" }}></div>
+              <div className="size-8 bg-center bg-no-repeat bg-contain" style={{ backgroundImage: "url('')" }}></div>
             </div>
             <div className="flex grow flex-col">
               <p className="text-white text-base font-semibold">bKash</p>

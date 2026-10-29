@@ -22,7 +22,7 @@ const RentalStep3: React.FC<Props> = ({ onBack, onSubmit }) => {
         <div className="glass-card rounded-2xl p-5 space-y-3">
           <div className="flex justify-between">
             <span className="text-white/40 text-xs">Name</span>
-            <span className="text-sm font-bold">Ariful Islam</span>
+            <span className="text-sm font-bold">{typeof window !== 'undefined' ? localStorage.getItem('duyar_user_name') || 'Applicant' : 'Applicant'}</span>
           </div>
           <div className="flex justify-between">
             <span className="text-white/40 text-xs">Income</span>

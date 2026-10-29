@@ -344,8 +344,8 @@ const PropertyDetails: React.FC<PropertyDetailsProps> = ({ onBack, onBook, onApp
   }, [property]);
 
   const images = [
-    property?.image || "https://lh3.googleusercontent.com/aida-public/AB6AXuA8gfymA2XJCNe6xPfvGg_lD74w7Y_V-4wvs0qobn1ZIyDWTAqtp9LGFsWhxfCgDM4aSSIG_0mmrdy6guZn35dpPwbTqWQyIN4K8Ya4l71cgqf_aikpZqePbZM_UO6ST1S-Ryg8qL-lOnDMwLKIUsRC1LO2l3FT1sI_wsU6qljy4DycpSlIYmIM5nmZUPnCHPpjeGOm_-de6RrfWODQIietgv-YxefoDyzRvuwSLCuXH8wmnpJTHR621SO1GDwSfoNeWSjblcGiYSQ",
-    "https://lh3.googleusercontent.com/aida-public/AB6AXuBoWpoj1q5iTlXpxyVFuJrqqidbsIeLSerKiQvqVuDUOmAQaao2un8lMS_-GMxCIxmP8DI-uHQdx2_GkZp_xR8wNapPirWxKXuFtuT0XZ1AjakaSNVKgOlIMHqHbQKnNuSsuyUbdqKmuiwNQiPR0-YErlxAJa94AqWUB0fcVRtK-8SBZO3jOv94zoKQLYA11CKlL6C-JYYFjOq8GK2lWVqv0O4A_cE8nurthEVkFuqSEUrfolK-hyXyW14UVjEC2c3CgOI1y1Rs64w"
+    property?.image || "",
+    ""
   ];
 
   const [activeIndex, setActiveIndex] = useState(0);

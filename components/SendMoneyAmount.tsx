@@ -23,13 +23,12 @@ const SendMoneyAmount: React.FC<Props> = ({ recipient, onBack, onConfirm }) => {
 
       <div className="relative z-10 flex-1 flex flex-col px-6 mt-4">
         <div className="glass-card rounded-2xl p-4 flex items-center gap-4 mb-12 bg-white/5 border border-white/10">
-          <div className="relative">
-            <div className="w-14 h-14 rounded-full bg-cover bg-center border-2 border-primary/20" style={{ backgroundImage: `url("${recipient?.image}")` }}></div>
-            <div className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-primary rounded-full border-2 border-background-dark"></div>
+          <div className="size-14 rounded-full bg-gradient-to-br from-primary/20 via-primary/10 to-transparent border-2 border-primary/40 flex items-center justify-center text-primary font-black text-lg">
+            {(recipient?.name || 'RC').slice(0, 2).toUpperCase()}
           </div>
           <div className="flex flex-col">
-            <h3 className="text-white font-semibold text-lg tracking-tight">{recipient?.name || 'Ariful Islam'}</h3>
-            <p className="text-white/50 text-sm">{recipient?.phone || '+880 1712-XXXXXX'}</p>
+            <h3 className="text-white font-semibold text-lg tracking-tight">{recipient?.name || 'Recipient'}</h3>
+            <p className="text-white/50 text-sm">{recipient?.phone || 'Wallet User'}</p>
           </div>
         </div>
 

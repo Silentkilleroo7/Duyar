@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { haptics } from '../haptics';
+import ProviderAvatar from './ProviderAvatar';
 
 export interface ServiceRatingData {
   providerName?: string;
@@ -18,7 +19,7 @@ interface Props {
   serviceData?: ServiceRatingData | null;
 }
 
-const DEFAULT_AVATAR = 'https://lh3.googleusercontent.com/aida-public/AB6AXuDaX6sDjQxpvUGeB_0Not7GzlTANyX0X71oCtAQZnlfX-kNT3gwtoOBsEs1UeWpAm1ath0eBsxXu5SwYrJt0xkZt--1UO42wIRyfJiY1FbTZm_4n6S6LEOmFKpTF-fwJLpQVvN2yMO8iKFMIaVhmTdA2gkLZWk0SwOMa0Wi8KmJ2TnMkZo9Sql6FCefcWPX7V5nrbVNpjksJVtryOenL8Z38OAV6uzzy9zr7Z20NN-5foEcNq_zB9akXMpZrujmbxb0WY3foZr7iTA';
+const DEFAULT_AVATAR = '';
 
 interface ServiceRatingConfig {
   providerName: string;
@@ -36,10 +37,11 @@ function getRatingConfig(serviceType?: string, serviceData?: ServiceRatingData |
 
   // 1. SECURITY GUARD
   if (raw.includes('security') || raw.includes('guard') || raw.includes('cctv') || raw.includes('patrol')) {
+    const pName = serviceData?.providerName || 'Security Specialist';
     return {
-      providerName: serviceData?.providerName || 'Habibur Rahman',
-      providerRole: serviceData?.providerRole || 'Senior Security Officer • 5.0★',
-      providerImage: serviceData?.providerImage || DEFAULT_AVATAR,
+      providerName: pName,
+      providerRole: serviceData?.providerRole || 'Senior Security Specialist',
+      providerImage: serviceData?.providerImage || '',
       serviceCategory: 'Security Guard Service',
       icon: 'shield_person',
       tags: [
@@ -51,16 +53,17 @@ function getRatingConfig(serviceType?: string, serviceData?: ServiceRatingData |
         'Polite & Respectful'
       ],
       defaultTags: ['Vigilant & Alert', 'Professional Conduct'],
-      placeholder: 'Share your feedback on Habibur Rahman\'s alertness, guarding quality, and perimeter vigilance...'
+      placeholder: `Share your feedback on ${pName}'s alertness, guarding quality, and perimeter vigilance...`
     };
   }
 
   // 2. MAID & HOUSEKEEPING
   if (raw.includes('maid') || raw.includes('clean') || raw.includes('housekeep')) {
+    const pName = serviceData?.providerName || 'Housekeeping Specialist';
     return {
-      providerName: serviceData?.providerName || 'Fatema Begum',
-      providerRole: serviceData?.providerRole || 'Verified Housekeeping Specialist • 4.9★',
-      providerImage: serviceData?.providerImage || DEFAULT_AVATAR,
+      providerName: pName,
+      providerRole: serviceData?.providerRole || 'Verified Housekeeping Specialist',
+      providerImage: serviceData?.providerImage || '',
       serviceCategory: 'Maid & Housekeeping',
       icon: 'cleaning_services',
       tags: [
@@ -72,16 +75,17 @@ function getRatingConfig(serviceType?: string, serviceData?: ServiceRatingData |
         'Polite Demeanor'
       ],
       defaultTags: ['Spotless Cleaning', 'Honest & Trustworthy'],
-      placeholder: 'Share your feedback on Fatema Begum\'s cleaning thoroughness, honesty, and punctuality...'
+      placeholder: `Share your feedback on ${pName}'s cleaning thoroughness, honesty, and punctuality...`
     };
   }
 
   // 3. PICK & DROP
   if (raw.includes('pick') || raw.includes('drop') || raw.includes('truck') || raw.includes('moving') || raw.includes('cargo')) {
+    const pName = serviceData?.providerName || 'Logistics Pilot';
     return {
-      providerName: serviceData?.providerName || 'Rakibul Islam',
-      providerRole: serviceData?.providerRole || 'Pick & Drop Logistics Specialist • 4.9★',
-      providerImage: serviceData?.providerImage || 'https://lh3.googleusercontent.com/aida-public/AB6AXuDXZy6E1Soj2pErXdy4eQRKJbWxJAgcwi3MpDmmBPDUMEMAJF8TJvxYtZmmo2pygB3y_aRhbl_0xzuVgFcPaCz2wh25mXO4mSMlUQhve85hjvh2VuY58I0sddXNLciQYubbZwqYagKQSzbNY6_Oym0rrcSDRUNg_DMoSfy4jbwmlUSG39KHKSekR19BYTdCTpTMMX6fUkcT0h8VzLd8znWmTMTzUig1GhHJZJaM80poHpC16kZy7dU0ttzsYAUkzVmTa6qvu6DQixE',
+      providerName: pName,
+      providerRole: serviceData?.providerRole || 'Pick & Drop Logistics Pilot',
+      providerImage: serviceData?.providerImage || '',
       serviceCategory: 'Pick & Drop Shipment',
       icon: 'local_shipping',
       tags: [
@@ -93,16 +97,18 @@ function getRatingConfig(serviceType?: string, serviceData?: ServiceRatingData |
         'Quick Transit'
       ],
       defaultTags: ['Careful Cargo Handling', 'Safe Driving'],
-      placeholder: 'Share your feedback on Rakibul Islam\'s driving safety, handling care, and punctuality...'
+      placeholder: `Share your feedback on ${pName}'s driving safety, handling care, and punctuality...`
     };
   }
 
   // 4. MAINTENANCE (Electrical, Plumbing, General)
   const isPlumb = raw.includes('plumb') || raw.includes('pipe') || raw.includes('water');
+  const defaultTitle = isPlumb ? 'Plumbing Specialist' : 'Electrical Specialist';
+  const pName = serviceData?.providerName || defaultTitle;
   return {
-    providerName: serviceData?.providerName || (isPlumb ? 'Ariful Islam' : 'Md. Kabir Hossain'),
-    providerRole: serviceData?.providerRole || (isPlumb ? 'Master Plumber • 4.8★' : 'Licensed Senior Electrician • 4.9★'),
-    providerImage: serviceData?.providerImage || DEFAULT_AVATAR,
+    providerName: pName,
+    providerRole: serviceData?.providerRole || (isPlumb ? 'Master Plumber' : 'Licensed Electrical Specialist'),
+    providerImage: serviceData?.providerImage || '',
     serviceCategory: serviceData?.category || (isPlumb ? 'Plumbing Maintenance' : 'Electrical Maintenance'),
     icon: isPlumb ? 'plumbing' : 'bolt',
     tags: [
@@ -114,7 +120,7 @@ function getRatingConfig(serviceType?: string, serviceData?: ServiceRatingData |
       'Punctual Arrival'
     ],
     defaultTags: ['Expert Technical Skill', 'Clean Work Area'],
-    placeholder: 'Share your feedback on technician craftsmanship, troubleshooting speed, and repair quality...'
+    placeholder: `Share your feedback on ${pName}'s craftsmanship, troubleshooting speed, and repair quality...`
   };
 }
 
@@ -166,12 +172,16 @@ const ServiceRating: React.FC<Props> = ({ onBack, onSubmit, serviceType, service
       {/* Provider Details Header */}
       <div className="flex flex-col items-center px-6 pt-4 pb-4 z-10 text-center">
         <div className="relative">
-          <div 
-            className="size-28 rounded-full bg-center bg-cover border-4 border-primary/30 shadow-[0_0_35px_rgba(19,236,218,0.25)]" 
-            style={{ backgroundImage: `url('${config.providerImage}')` }}
+          <ProviderAvatar 
+            name={config.providerName} 
+            category={config.serviceCategory} 
+            role={config.providerRole} 
+            image={config.providerImage} 
+            size="xl" 
+            showOnlineDot={false} 
           />
-          <div className="absolute bottom-1 right-1 bg-primary size-7 rounded-full border-3 border-background-dark flex items-center justify-center text-background-dark shadow-md">
-            <span className="material-symbols-outlined text-sm font-black">verified</span>
+          <div className="absolute bottom-0 right-0 bg-primary size-6 rounded-full border-2 border-background-dark flex items-center justify-center text-background-dark shadow-md">
+            <span className="material-symbols-outlined text-xs font-black">verified</span>
           </div>
         </div>
         <div className="mt-4">

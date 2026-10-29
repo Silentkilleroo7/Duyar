@@ -2,6 +2,8 @@ import React, { useState, useRef, useEffect } from 'react';
 import { haptics } from '../haptics';
 import { scheduleMaintenanceVisit } from '../maintenanceScheduler';
 import { addMaintenanceTicket } from '../maintenanceStorage';
+import { ProximityRadarModal } from './ProximityRadarModal';
+import { RankedProvider } from '../proximityDispatcher';
 
 interface Props {
   serviceName: string;
@@ -67,6 +69,7 @@ const MaintenanceBooking: React.FC<Props> = ({ serviceName, onBack, onConfirm, u
   const [priority, setPriority] = useState<'Standard' | 'Urgent Fix'>('Standard');
   const [description, setDescription] = useState('');
   const [showPreviewModal, setShowPreviewModal] = useState(false);
+  const [showProximityModal, setShowProximityModal] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   
   const mapRef = useRef<HTMLDivElement>(null);
@@ -333,6 +336,68 @@ const MaintenanceBooking: React.FC<Props> = ({ serviceName, onBack, onConfirm, u
 
     setShowPreviewModal(false);
     setIsSubmitting(false);
+    onConfirm(offeredPrice);
+  };
+
+  const handleProximityDispatch = (provider: RankedProvider) => {
+    const userPhone = userProfile?.phone || localStorage.getItem('duyar_user_phone') || '+8801977347402';
+    const userName = userProfile?.full_name || 'Resident';
+    const userId = userProfile?.id;
+
+    const categoryMap: Record<string, 'Electrical' | 'Plumbing' | 'AC & Appliance' | 'Security & CCTV' | 'Carpentry'> = {
+      'Electrical': 'Electrical',
+      'Plumbing': 'Plumbing',
+      'Painting': 'Carpentry',
+      'Appliance Repair': 'AC & Appliance',
+      'Maintenance': 'AC & Appliance',
+      'Cleaning': 'AC & Appliance',
+      'Security': 'Security & CCTV',
+      'Carpentry': 'Carpentry'
+    };
+    const category = categoryMap[serviceName] || 'Electrical';
+    const iconName = serviceName.toLowerCase().includes('electric') ? 'bolt' : serviceName.toLowerCase().includes('plumb') ? 'plumbing' : 'build';
+
+    const finalDescription = description.trim() 
+      ? `${description.trim()} | Dispatched nearest specialist: ${provider.name} (${provider.distanceKm} km away)`
+      : `Booked service: ${selectedSub} in ${serviceLocation.area} with nearest specialist ${provider.name}`;
+
+    try {
+      addMaintenanceTicket({
+        title: `${serviceName} - ${selectedSub}`,
+        category,
+        icon: iconName,
+        priority: priority === 'Urgent Fix' ? 'High' : 'Standard',
+        customerName: userName,
+        customerPhone: userPhone,
+        userId,
+        address: serviceLocation.address,
+        area: serviceLocation.area,
+        price: `৳ ${offeredPrice}`,
+        status: 'ASSIGNED',
+        description: finalDescription,
+        technicianName: provider.name,
+        technicianRole: `${provider.role} (📍 ${provider.distanceKm} km away • Top Priority)`,
+        technicianPhone: provider.phone,
+        scheduledTime: `Arriving in ~${provider.etaMinutes} mins (${provider.distanceKm} km away)`
+      });
+
+      scheduleMaintenanceVisit({
+        serviceType: serviceName || 'Electrical',
+        serviceTitle: `${serviceName || 'Electrical'} Maintenance & Repair`,
+        providerName: provider.name,
+        providerRole: `${provider.role} • 📍 ${provider.distanceKm} km away`,
+        customerName: userName,
+        customerPhone: userPhone,
+        userId,
+        address: `${serviceLocation.address}, ${serviceLocation.area}`,
+        scheduledTimestamp: Date.now() + provider.etaMinutes * 60 * 1000
+      });
+    } catch (e) {
+      console.warn('Booking persistence note:', e);
+    }
+
+    setShowPreviewModal(false);
+    setShowProximityModal(false);
     onConfirm(offeredPrice);
   };
 
@@ -810,6 +875,14 @@ const MaintenanceBooking: React.FC<Props> = ({ serviceName, onBack, onConfirm, u
               </button>
               <button
                 type="button"
+                onClick={() => setShowProximityModal(true)}
+                className="flex-[1.2] py-3.5 rounded-xl bg-primary/20 text-primary border border-primary/40 font-black text-xs uppercase tracking-wider hover:bg-primary/30 active:scale-95 transition-all flex items-center justify-center gap-1.5"
+              >
+                <span className="material-symbols-outlined text-base">radar</span>
+                <span>NEAREST RADAR</span>
+              </button>
+              <button
+                type="button"
                 disabled={isSubmitting}
                 onClick={handleFinalSubmit}
                 className="flex-[1.8] py-3.5 rounded-xl bg-primary text-black font-black text-xs uppercase tracking-widest shadow-[0_0_20px_rgba(19,236,218,0.4)] hover:brightness-110 active:scale-95 transition-all flex items-center justify-center gap-2"
@@ -822,20 +895,51 @@ const MaintenanceBooking: React.FC<Props> = ({ serviceName, onBack, onConfirm, u
         </div>
       )}
 
-      {/* Sticky Bottom Bar - PREVIEW & SUBMIT INITIATION */}
-      <div className="fixed bottom-0 left-0 right-0 p-5 glass border-t border-white/10 z-[40]">
-        <div className="max-w-[430px] mx-auto flex items-center gap-3">
+      {/* Proximity Nearest Provider Radar Modal */}
+      {showProximityModal && (
+        <ProximityRadarModal
+          isOpen={showProximityModal}
+          onClose={() => setShowProximityModal(false)}
+          serviceCategory={serviceName}
+          serviceSubCategory={selectedSub}
+          userArea={serviceLocation.area}
+          userAddress={serviceLocation.address}
+          userLat={serviceLocation.coords[0]}
+          userLng={serviceLocation.coords[1]}
+          onSelectProvider={handleProximityDispatch}
+          onConfirmWithoutSpecificProvider={handleFinalSubmit}
+        />
+      )}
+
+      {/* Sticky Bottom Bar - NEAREST RADAR & PREVIEW ACTIONS */}
+      <div className="fixed bottom-0 left-0 right-0 p-4 glass border-t border-white/10 z-[40]">
+        <div className="max-w-[430px] mx-auto flex items-center gap-2.5">
           <div className="flex flex-col min-w-0 pr-1">
             <span className="text-[9px] text-white/40 uppercase font-black tracking-wider">Offer</span>
-            <span className="text-emerald-400 font-black text-lg leading-tight">৳{offeredPrice}</span>
+            <span className="text-emerald-400 font-black text-base leading-tight">৳{offeredPrice}</span>
           </div>
+
+          {/* Priority 1 Action: Find Nearest Specialist */}
+          <button 
+            type="button"
+            onClick={() => {
+              haptics.selection();
+              setShowProximityModal(true);
+            }} 
+            className="flex-[1.4] bg-primary text-background-dark font-black h-13 py-3 rounded-2xl shadow-[0_0_25px_rgba(19,236,218,0.4)] tracking-wide uppercase active:scale-[0.98] text-[11px] hover:brightness-110 transition-all flex items-center justify-center gap-1.5 border border-primary/50"
+          >
+            <span className="material-symbols-outlined font-black text-base animate-pulse">radar</span>
+            <span>FIND NEAREST</span>
+          </button>
+
+          {/* Action 2: Preview & Submit */}
           <button 
             type="button"
             onClick={handleOpenPreview} 
-            className="flex-1 bg-primary text-background-dark font-black h-14 rounded-2xl shadow-[0_0_20px_rgba(19,236,218,0.3)] tracking-[0.15em] uppercase active:scale-[0.98] text-xs italic hover:brightness-110 transition-all flex items-center justify-center gap-2"
+            className="flex-1 bg-white/10 text-white font-black h-13 py-3 rounded-2xl border border-white/10 tracking-wide uppercase active:scale-[0.98] text-[11px] hover:bg-white/15 transition-all flex items-center justify-center gap-1.5"
           >
-            <span className="material-symbols-outlined font-black text-base">visibility</span>
-            <span>PREVIEW & SUBMIT REQUEST</span>
+            <span className="material-symbols-outlined font-black text-sm">visibility</span>
+            <span>PREVIEW</span>
           </button>
         </div>
       </div>
