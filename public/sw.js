@@ -81,6 +81,27 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
+  // NEVER intercept or cache code files, Vite modules, dependencies, HMR, or API endpoints
+  if (
+    url.pathname.startsWith('/@') ||
+    url.pathname.startsWith('/node_modules/') ||
+    url.pathname.includes('.vite') ||
+    url.pathname.startsWith('/api/') ||
+    url.searchParams.has('import') ||
+    url.searchParams.has('v') ||
+    url.searchParams.has('t') ||
+    url.pathname.endsWith('.tsx') ||
+    url.pathname.endsWith('.ts') ||
+    url.pathname.endsWith('.jsx') ||
+    url.pathname.endsWith('.js') ||
+    url.pathname.endsWith('.mjs') ||
+    url.pathname.endsWith('.map') ||
+    request.destination === 'script' ||
+    request.destination === 'worker'
+  ) {
+    return;
+  }
+
   // HTML Page Navigation requests: Network-First with Offline Fallback
   if (request.mode === 'navigate') {
     event.respondWith(
@@ -140,8 +161,11 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Local assets (JS, CSS, Images, Icons): Stale-While-Revalidate
-  if (url.origin === self.location.origin) {
+  // Static media / icons / images ONLY: Stale-While-Revalidate
+  if (
+    request.destination === 'image' ||
+    url.pathname.match(/\.(png|jpg|jpeg|svg|webp|ico|gif|woff2?|ttf|eot)$/i)
+  ) {
     event.respondWith(
       caches.match(request).then((cached) => {
         const fetchPromise = fetch(request).then((networkRes) => {
