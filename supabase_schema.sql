@@ -1,16 +1,16 @@
 -- ==============================================================================
--- DUYAR REAL ESTATE & SUPER APP - COMPLETE PRODUCTION SUPABASE SQL SCRIPT
+-- DUYAR REAL ESTATE & SERVICE ECOSYSTEM - COMPLETE MASTER SUPABASE SQL SCRIPT
 -- ==============================================================================
--- INSTRUCTIONS FOR LIVE LAUNCH:
--- 1. Open your Supabase Project Dashboard (https://supabase.com/dashboard)
--- 2. Select your project and navigate to the "SQL Editor" in the left sidebar
--- 3. Click "New query", paste this entire script, and click "Run" (or Ctrl + Enter)
--- 4. Result: All database tables, storage buckets (property-images, avatars, receipts, documents),
---    RLS policies, realtime subscriptions, automated auth triggers, and dedicated photo uploading
---    database functions will be active with zero mock data.
+-- INSTRUCTIONS FOR LIVE DATABASE SETUP:
+-- 1. Open your Supabase Dashboard: https://supabase.com/dashboard
+-- 2. Select your project and navigate to the "SQL Editor" in the left navigation
+-- 3. Click "New query", paste this ENTIRE single script, and click "Run" (Ctrl+Enter)
+-- 4. Result: All 20 tables, 5 storage buckets, RLS policies, real-time publications,
+--    atomic wallet transfer/recharge functions, chat, live GPS tracking, and auth triggers
+--    will be configured and connected immediately!
 -- ==============================================================================
 
--- 1. Enable Required PostgreSQL Extensions
+-- 1. Enable Required Extensions
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
@@ -98,130 +98,173 @@ CREATE TABLE IF NOT EXISTS public.property_visits (
   status TEXT DEFAULT 'SCHEDULED' CHECK (status IN ('SCHEDULED', 'CONFIRMED', 'COMPLETED', 'CANCELLED')),
   notes TEXT,
   completed_at TIMESTAMPTZ,
-  created_at TIMESTAMPTZ DEFAULT NOW(),
-  updated_at TIMESTAMPTZ DEFAULT NOW()
+  created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- 2.4 RENTAL APPLICATIONS
+-- 2.4 SAVED PROPERTIES (Bookmarked / Interested Listings)
+CREATE TABLE IF NOT EXISTS public.saved_properties (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE,
+  user_phone TEXT,
+  property_id TEXT NOT NULL,
+  title TEXT NOT NULL,
+  price TEXT NOT NULL,
+  location TEXT NOT NULL,
+  beds INTEGER DEFAULT 3,
+  baths INTEGER DEFAULT 2,
+  sqft INTEGER DEFAULT 1500,
+  image TEXT,
+  tag TEXT DEFAULT 'RENT',
+  available_month TEXT DEFAULT 'This Month',
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 2.5 RENTAL APPLICATIONS
 CREATE TABLE IF NOT EXISTS public.rental_applications (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   property_id UUID REFERENCES public.properties(id) ON DELETE CASCADE,
   applicant_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE,
-  applicant_name TEXT NOT NULL,
   applicant_phone TEXT NOT NULL,
-  nid_number TEXT,
-  monthly_income NUMERIC(12, 2),
-  occupation TEXT,
-  family_members INTEGER DEFAULT 1,
-  advance_amount NUMERIC(12, 2) DEFAULT 0,
+  applicant_name TEXT NOT NULL,
+  nid_number TEXT NOT NULL,
+  monthly_income NUMERIC(12, 2) NOT NULL,
+  current_address TEXT,
   move_in_date TEXT,
+  documents TEXT[] DEFAULT ARRAY[]::TEXT[],
   status TEXT DEFAULT 'PENDING' CHECK (status IN ('PENDING', 'APPROVED', 'REJECTED')),
-  created_at TIMESTAMPTZ DEFAULT NOW(),
-  updated_at TIMESTAMPTZ DEFAULT NOW()
+  created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- 2.5 WALLET TRANSACTIONS
+-- 2.6 TRANSACTIONS (Wallet Ledger: Recharges, Transfers, Rent, Booking, Payouts)
 CREATE TABLE IF NOT EXISTS public.transactions (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE,
   user_phone TEXT,
-  type TEXT NOT NULL CHECK (type IN ('deposit', 'withdraw', 'send', 'receive', 'rent_payment', 'service_payment', 'boost_ad', 'locator_reward', 'refund')),
-  amount NUMERIC(12, 2) NOT NULL CHECK (amount > 0),
-  method TEXT DEFAULT 'Duyar Wallet' CHECK (method IN ('Duyar Wallet', 'bKash', 'Nagad', 'Rocket', 'Upay', 'Bank Transfer', 'Cash')),
-  account_number TEXT,
-  trx_id TEXT,
-  status TEXT DEFAULT 'COMPLETED' CHECK (status IN ('PENDING', 'COMPLETED', 'FAILED', 'REJECTED')),
+  type TEXT NOT NULL CHECK (type IN ('deposit', 'transfer_in', 'transfer_out', 'rent_payment', 'service_fee', 'payout', 'locator_reward', 'boost_ad', 'booking_fee')),
+  amount NUMERIC(14, 2) NOT NULL CHECK (amount > 0),
+  recipient_phone TEXT,
+  recipient_name TEXT,
+  payment_method TEXT DEFAULT 'Duyar Wallet',
+  status TEXT DEFAULT 'COMPLETED' CHECK (status IN ('PENDING', 'COMPLETED', 'FAILED', 'REVERSED')),
   description TEXT,
+  trx_id TEXT UNIQUE,
+  reference_id TEXT,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- 2.6 MANUAL RECHARGES (Add Money via bKash / Nagad / Rocket with TrxID)
+-- 2.7 MANUAL RECHARGES (bKash, Nagad, Rocket, Bank Deposit Proofs)
 CREATE TABLE IF NOT EXISTS public.manual_recharges (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE,
   user_phone TEXT NOT NULL,
-  amount NUMERIC(12, 2) NOT NULL CHECK (amount > 0),
-  payment_method TEXT NOT NULL CHECK (payment_method IN ('bKash', 'Nagad', 'Rocket', 'Upay')),
+  user_name TEXT,
+  amount NUMERIC(14, 2) NOT NULL CHECK (amount > 0),
+  gateway TEXT NOT NULL CHECK (gateway IN ('bkash', 'nagad', 'rocket', 'bank')),
   sender_number TEXT NOT NULL,
-  trx_id TEXT UNIQUE NOT NULL,
+  transaction_id TEXT NOT NULL UNIQUE,
   receipt_url TEXT,
-  status TEXT DEFAULT 'PENDING' CHECK (status IN ('PENDING', 'APPROVED', 'REJECTED')),
-  admin_notes TEXT,
-  processed_at TIMESTAMPTZ,
+  status TEXT DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'rejected')),
+  reviewed_by TEXT,
+  reviewed_at TIMESTAMPTZ,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- 2.7 PAYOUT / WITHDRAWAL REQUESTS
+-- 2.8 PAYOUT REQUESTS (Withdrawals by Landlords & Specialists)
 CREATE TABLE IF NOT EXISTS public.payout_requests (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE,
-  user_name TEXT,
   user_phone TEXT NOT NULL,
-  method TEXT NOT NULL CHECK (method IN ('bKash', 'Nagad', 'Rocket', 'Upay', 'Bank Transfer')),
+  user_name TEXT NOT NULL,
+  amount NUMERIC(14, 2) NOT NULL CHECK (amount > 0),
+  bank_name TEXT NOT NULL,
+  account_name TEXT NOT NULL,
   account_number TEXT NOT NULL,
-  amount NUMERIC(12, 2) NOT NULL CHECK (amount > 0),
-  fee NUMERIC(12, 2) DEFAULT 0,
-  net_amount NUMERIC(12, 2) NOT NULL,
-  status TEXT DEFAULT 'PENDING' CHECK (status IN ('PENDING', 'PROCESSED', 'REJECTED', 'HOLD')),
-  user_notes TEXT,
-  admin_trx_id TEXT,
-  admin_notes TEXT,
+  branch_name TEXT,
+  routing_number TEXT,
+  status TEXT DEFAULT 'PENDING' CHECK (status IN ('PENDING', 'APPROVED', 'REJECTED', 'PROCESSED')),
+  reference_number TEXT,
   processed_at TIMESTAMPTZ,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- 2.8 HOME SERVICE BOOKINGS (General Bookings)
+-- 2.9 SERVICE BOOKINGS (Security Guards, Maids, Maintenance, Inspections)
 CREATE TABLE IF NOT EXISTS public.service_bookings (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  service_type TEXT NOT NULL,
-  category TEXT,
-  user_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE,
-  user_phone TEXT NOT NULL,
-  customer_name TEXT,
+  customer_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE,
+  customer_phone TEXT NOT NULL,
+  customer_name TEXT NOT NULL,
   provider_id UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
-  provider_name TEXT,
   provider_phone TEXT,
+  provider_name TEXT,
+  category TEXT NOT NULL CHECK (category IN ('Maid & Housekeeping', 'Security Guard', 'Maintenance', 'Pick & Drop', 'Painting', 'Appliance', 'Electrical', 'Plumbing')),
+  service_title TEXT NOT NULL,
+  booking_date TEXT NOT NULL,
+  booking_time TEXT NOT NULL,
   address TEXT NOT NULL,
-  area TEXT,
-  scheduled_date TEXT,
-  scheduled_time TEXT,
-  price NUMERIC(12, 2) DEFAULT 0,
-  status TEXT DEFAULT 'PENDING' CHECK (status IN ('PENDING', 'ACCEPTED', 'ASSIGNED', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED')),
-  details JSONB DEFAULT '{}'::JSONB,
-  created_at TIMESTAMPTZ DEFAULT NOW(),
-  updated_at TIMESTAMPTZ DEFAULT NOW()
+  area TEXT NOT NULL,
+  fare NUMERIC(12, 2) NOT NULL,
+  status TEXT DEFAULT 'PENDING' CHECK (status IN ('PENDING', 'ACCEPTED', 'ACTIVE', 'CONFIRMED', 'COMPLETED', 'CANCELLED')),
+  notes TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- 2.9 MAINTENANCE TICKETS (Specialized for Electrical, Plumbing, AC, Security & CCTV, Maid)
+-- 2.10 MAINTENANCE TICKETS
 CREATE TABLE IF NOT EXISTS public.maintenance_tickets (
   id TEXT PRIMARY KEY,
-  title TEXT NOT NULL,
   category TEXT NOT NULL,
+  title TEXT NOT NULL,
   priority TEXT DEFAULT 'Standard',
-  status TEXT DEFAULT 'PENDING' CHECK (status IN ('PENDING', 'ACCEPTED', 'ACTIVE', 'CONFIRMED', 'ASSIGNED', 'IN_PROGRESS', 'COMPLETED')),
-  address TEXT NOT NULL,
+  customer_name TEXT,
+  customer_phone TEXT,
+  user_id TEXT,
+  address TEXT,
+  area TEXT,
   scheduled_time TEXT,
-  price TEXT NOT NULL,
+  price TEXT,
+  status TEXT DEFAULT 'PENDING' CHECK (status IN ('PENDING', 'ACCEPTED', 'ACTIVE', 'IN_PROGRESS', 'CONFIRMED', 'COMPLETED', 'CANCELLED')),
   assigned_at TEXT,
   started_at TEXT,
   completed_at TEXT,
   technician_name TEXT,
+  technician_role TEXT,
   technician_phone TEXT,
-  customer_name TEXT,
-  customer_phone TEXT,
-  user_id TEXT,
+  description TEXT,
+  image TEXT,
   notes TEXT[] DEFAULT ARRAY[]::TEXT[],
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- 2.10 PICK & DROP REQUESTS (Cargo, Truck, Moving Logistics)
+-- 2.11 SCHEDULED MAINTENANCE VISITS (Pre-visit alerts & automated 30-min confirmations)
+CREATE TABLE IF NOT EXISTS public.scheduled_maintenance_visits (
+  id TEXT PRIMARY KEY,
+  ticket_id TEXT NOT NULL,
+  service_type TEXT NOT NULL,
+  service_title TEXT NOT NULL,
+  provider_name TEXT NOT NULL,
+  provider_role TEXT DEFAULT 'Licensed Specialist',
+  provider_phone TEXT,
+  provider_image TEXT,
+  customer_name TEXT DEFAULT 'Resident',
+  customer_phone TEXT,
+  user_id TEXT,
+  address TEXT NOT NULL,
+  scheduled_time TEXT NOT NULL,
+  scheduled_timestamp BIGINT NOT NULL,
+  notify_at_timestamp BIGINT NOT NULL,
+  notified BOOLEAN DEFAULT false,
+  availability_confirmed BOOLEAN DEFAULT false,
+  status TEXT DEFAULT 'SCHEDULED' CHECK (status IN ('SCHEDULED', 'CONFIRMED', 'COMPLETED', 'CANCELLED')),
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 2.12 PICK & DROP LOGISTICS REQUESTS
 CREATE TABLE IF NOT EXISTS public.pickdrop_requests (
   id TEXT PRIMARY KEY,
-  vehicle TEXT NOT NULL,
-  helpers INTEGER DEFAULT 1,
+  vehicle_type TEXT DEFAULT 'Mini Truck',
+  helpers_count INTEGER DEFAULT 1,
   items TEXT[] DEFAULT ARRAY[]::TEXT[],
-  item_details TEXT,
+  item_details TEXT NOT NULL,
   special_notes TEXT[] DEFAULT ARRAY[]::TEXT[],
   pickup_floor TEXT,
   drop_floor TEXT,
@@ -230,8 +273,8 @@ CREATE TABLE IF NOT EXISTS public.pickdrop_requests (
   drop_area TEXT NOT NULL,
   drop_address TEXT NOT NULL,
   fare TEXT NOT NULL,
-  weight_category TEXT,
-  status TEXT DEFAULT 'PENDING' CHECK (status IN ('PENDING', 'ACCEPTED', 'ACTIVE', 'CONFIRMED', 'ON_TRIP', 'COMPLETED')),
+  weight_category TEXT DEFAULT 'Standard',
+  status TEXT DEFAULT 'PENDING' CHECK (status IN ('PENDING', 'ACCEPTED', 'ACTIVE', 'CONFIRMED', 'ON_TRIP', 'COMPLETED', 'CANCELLED')),
   driver_name TEXT,
   driver_phone TEXT,
   driver_vehicle_no TEXT,
@@ -241,7 +284,36 @@ CREATE TABLE IF NOT EXISTS public.pickdrop_requests (
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- 2.11 PROVIDER APPLICATIONS (Landlord, Maid, Technician, Driver, Security Guard, Locator)
+-- 2.13 CHAT MESSAGES (Live Negotiation, Deal Confirmations & Status Updates)
+CREATE TABLE IF NOT EXISTS public.chat_messages (
+  id TEXT PRIMARY KEY,
+  ticket_id TEXT NOT NULL,
+  sender_id TEXT NOT NULL,
+  sender_name TEXT NOT NULL,
+  sender_role TEXT NOT NULL CHECK (sender_role IN ('customer', 'provider', 'system')),
+  sender_avatar TEXT,
+  sender_phone TEXT,
+  type TEXT NOT NULL CHECK (type IN ('text', 'offer', 'counter', 'acceptance', 'agreement_confirmed')),
+  text TEXT NOT NULL,
+  price TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 2.14 LIVE TRACKING TELEMETRY (Real-Time GPS Location, Speed & ETA)
+CREATE TABLE IF NOT EXISTS public.live_tracking_telemetry (
+  ticket_id TEXT PRIMARY KEY,
+  provider_lat DOUBLE PRECISION NOT NULL,
+  provider_lng DOUBLE PRECISION NOT NULL,
+  user_lat DOUBLE PRECISION NOT NULL,
+  user_lng DOUBLE PRECISION NOT NULL,
+  speed_kmh NUMERIC(6, 2) DEFAULT 35.0,
+  eta_minutes INTEGER DEFAULT 12,
+  status TEXT DEFAULT 'EN_ROUTE' CHECK (status IN ('EN_ROUTE', 'NEARBY', 'ARRIVED', 'IN_SERVICE', 'COMPLETED')),
+  last_updated_by TEXT DEFAULT 'provider',
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 2.15 PROVIDER APPLICATIONS (Landlord, Maid, Technician, Driver, Guard, Locator)
 CREATE TABLE IF NOT EXISTS public.provider_applications (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE,
@@ -259,7 +331,23 @@ CREATE TABLE IF NOT EXISTS public.provider_applications (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- 2.12 NOTIFICATIONS & IN-APP ALERTS
+-- 2.16 PROPERTY REVIEWS & SERVICE RATINGS
+CREATE TABLE IF NOT EXISTS public.property_reviews (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  property_id TEXT,
+  ticket_id TEXT,
+  user_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE,
+  user_phone TEXT,
+  user_name TEXT DEFAULT 'Resident',
+  rating NUMERIC(2, 1) NOT NULL CHECK (rating >= 1.0 AND rating <= 5.0),
+  comment TEXT,
+  tags TEXT[] DEFAULT ARRAY[]::TEXT[],
+  provider_name TEXT,
+  service_category TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 2.17 NOTIFICATIONS & SYSTEM ALERTS
 CREATE TABLE IF NOT EXISTS public.notifications (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE,
@@ -272,8 +360,47 @@ CREATE TABLE IF NOT EXISTS public.notifications (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- 2.18 ADMIN AUDIT LOGS (Security, Actions & Payout History)
+CREATE TABLE IF NOT EXISTS public.admin_audit_logs (
+  id TEXT PRIMARY KEY,
+  timestamp TIMESTAMPTZ DEFAULT NOW(),
+  operator TEXT NOT NULL,
+  operator_role TEXT NOT NULL,
+  action TEXT NOT NULL,
+  category TEXT NOT NULL,
+  title TEXT NOT NULL,
+  details TEXT,
+  target_id TEXT,
+  target_name TEXT,
+  amount NUMERIC(14, 2),
+  status TEXT DEFAULT 'SUCCESS' CHECK (status IN ('SUCCESS', 'FAILED', 'WARNING', 'INFO'))
+);
+
+-- 2.19 ADMIN TASKS (Internal Operations Queue)
+CREATE TABLE IF NOT EXISTS public.admin_tasks (
+  id TEXT PRIMARY KEY DEFAULT ('TASK-' || substr(md5(random()::text), 1, 8)),
+  title TEXT NOT NULL,
+  assigned_to TEXT,
+  priority TEXT DEFAULT 'Medium' CHECK (priority IN ('Low', 'Medium', 'High', 'Urgent')),
+  status TEXT DEFAULT 'PENDING' CHECK (status IN ('PENDING', 'IN_PROGRESS', 'RESOLVED', 'CLOSED')),
+  due_date TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 2.20 FLAGGED USERS & MODERATION
+CREATE TABLE IF NOT EXISTS public.flagged_users (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  phone TEXT NOT NULL,
+  user_name TEXT,
+  reason TEXT NOT NULL,
+  risk_level TEXT DEFAULT 'Medium' CHECK (risk_level IN ('Low', 'Medium', 'High', 'Critical')),
+  flagged_at TIMESTAMPTZ DEFAULT NOW(),
+  flagged_by TEXT DEFAULT 'System Guard',
+  status TEXT DEFAULT 'PENDING' CHECK (status IN ('PENDING', 'SUSPENDED', 'DISMISSED'))
+);
+
 -- ==============================================================================
--- 3. INDEXES FOR HIGH-SPEED SEARCH & REALTIME QUERIES
+-- 3. INDEXES FOR HIGH-SPEED GEOLOCATION & REAL-TIME QUERIES
 -- ==============================================================================
 CREATE INDEX IF NOT EXISTS idx_profiles_phone ON public.profiles(phone);
 CREATE INDEX IF NOT EXISTS idx_profiles_role ON public.profiles(role);
@@ -281,12 +408,14 @@ CREATE INDEX IF NOT EXISTS idx_properties_status ON public.properties(status);
 CREATE INDEX IF NOT EXISTS idx_properties_location ON public.properties(location);
 CREATE INDEX IF NOT EXISTS idx_properties_lat_lng ON public.properties(latitude, longitude);
 CREATE INDEX IF NOT EXISTS idx_properties_type ON public.properties(type);
-CREATE INDEX IF NOT EXISTS idx_properties_creator_role ON public.properties(creator_role);
 CREATE INDEX IF NOT EXISTS idx_transactions_user ON public.transactions(user_id);
+CREATE INDEX IF NOT EXISTS idx_transactions_phone ON public.transactions(user_phone);
 CREATE INDEX IF NOT EXISTS idx_visits_user ON public.property_visits(user_id);
-CREATE INDEX IF NOT EXISTS idx_visits_property ON public.property_visits(property_id);
-CREATE INDEX IF NOT EXISTS idx_notifications_user ON public.notifications(user_id);
+CREATE INDEX IF NOT EXISTS idx_saved_properties_phone ON public.saved_properties(user_phone);
 CREATE INDEX IF NOT EXISTS idx_maintenance_customer_phone ON public.maintenance_tickets(customer_phone);
+CREATE INDEX IF NOT EXISTS idx_pickdrop_user_phone ON public.pickdrop_requests(user_phone);
+CREATE INDEX IF NOT EXISTS idx_chat_ticket_id ON public.chat_messages(ticket_id);
+CREATE INDEX IF NOT EXISTS idx_notifications_user ON public.notifications(user_id);
 
 -- ==============================================================================
 -- 4. ROW LEVEL SECURITY (RLS) POLICIES
@@ -294,67 +423,46 @@ CREATE INDEX IF NOT EXISTS idx_maintenance_customer_phone ON public.maintenance_
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.properties ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.property_visits ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.saved_properties ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.rental_applications ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.transactions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.manual_recharges ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.payout_requests ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.service_bookings ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.maintenance_tickets ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.scheduled_maintenance_visits ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.pickdrop_requests ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.chat_messages ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.live_tracking_telemetry ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.provider_applications ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.property_reviews ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.notifications ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.admin_audit_logs ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.admin_tasks ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.flagged_users ENABLE ROW LEVEL SECURITY;
 
--- Permissive RLS Policies for App Front-End Access
-DROP POLICY IF EXISTS "Public profiles read" ON public.profiles;
-CREATE POLICY "Public profiles read" ON public.profiles FOR SELECT USING (true);
-DROP POLICY IF EXISTS "Users can insert own profile" ON public.profiles;
-CREATE POLICY "Users can insert own profile" ON public.profiles FOR INSERT WITH CHECK (true);
-DROP POLICY IF EXISTS "Users can update own profile" ON public.profiles;
-CREATE POLICY "Users can update own profile" ON public.profiles FOR UPDATE USING (true) WITH CHECK (true);
-
-DROP POLICY IF EXISTS "Public can view approved properties" ON public.properties;
-CREATE POLICY "Public can view approved properties" ON public.properties FOR SELECT USING (true);
-DROP POLICY IF EXISTS "Users can insert properties" ON public.properties;
-CREATE POLICY "Users can insert properties" ON public.properties FOR INSERT WITH CHECK (true);
-DROP POLICY IF EXISTS "Owners can update their properties" ON public.properties;
-CREATE POLICY "Owners can update their properties" ON public.properties FOR UPDATE USING (true) WITH CHECK (true);
-DROP POLICY IF EXISTS "Owners can delete their properties" ON public.properties;
-CREATE POLICY "Owners can delete their properties" ON public.properties FOR DELETE USING (true);
-
-DROP POLICY IF EXISTS "Transactions access" ON public.transactions;
-CREATE POLICY "Transactions access" ON public.transactions FOR ALL USING (true);
-
-DROP POLICY IF EXISTS "Visits access" ON public.property_visits;
-CREATE POLICY "Visits access" ON public.property_visits FOR ALL USING (true);
-
-DROP POLICY IF EXISTS "Rental applications access" ON public.rental_applications;
-CREATE POLICY "Rental applications access" ON public.rental_applications FOR ALL USING (true);
-
-DROP POLICY IF EXISTS "Manual recharges access" ON public.manual_recharges;
-CREATE POLICY "Manual recharges access" ON public.manual_recharges FOR ALL USING (true);
-
-DROP POLICY IF EXISTS "Payouts access" ON public.payout_requests;
-CREATE POLICY "Payouts access" ON public.payout_requests FOR ALL USING (true);
-
-DROP POLICY IF EXISTS "Service bookings access" ON public.service_bookings;
-CREATE POLICY "Service bookings access" ON public.service_bookings FOR ALL USING (true);
-
-DROP POLICY IF EXISTS "Maintenance tickets access" ON public.maintenance_tickets;
-CREATE POLICY "Maintenance tickets access" ON public.maintenance_tickets FOR ALL USING (true);
-
-DROP POLICY IF EXISTS "Pickdrop requests access" ON public.pickdrop_requests;
-CREATE POLICY "Pickdrop requests access" ON public.pickdrop_requests FOR ALL USING (true);
-
-DROP POLICY IF EXISTS "Provider applications access" ON public.provider_applications;
-CREATE POLICY "Provider applications access" ON public.provider_applications FOR ALL USING (true);
-
-DROP POLICY IF EXISTS "Notifications access" ON public.notifications;
-CREATE POLICY "Notifications access" ON public.notifications FOR ALL USING (true);
+-- Permissive public policies for seamless frontend application connectivity
+DO $$ 
+DECLARE 
+  t TEXT;
+  tables TEXT[] := ARRAY[
+    'profiles', 'properties', 'property_visits', 'saved_properties', 
+    'rental_applications', 'transactions', 'manual_recharges', 'payout_requests',
+    'service_bookings', 'maintenance_tickets', 'scheduled_maintenance_visits',
+    'pickdrop_requests', 'chat_messages', 'live_tracking_telemetry',
+    'provider_applications', 'property_reviews', 'notifications',
+    'admin_audit_logs', 'admin_tasks', 'flagged_users'
+  ];
+BEGIN
+  FOREACH t IN ARRAY tables LOOP
+    EXECUTE format('DROP POLICY IF EXISTS "Public access on %I" ON public.%I', t, t);
+    EXECUTE format('CREATE POLICY "Public access on %I" ON public.%I FOR ALL USING (true) WITH CHECK (true)', t, t);
+  END LOOP;
+END $$;
 
 -- ==============================================================================
 -- 5. STORAGE BUCKETS CONFIGURATION & POLICIES
 -- ==============================================================================
-
 DO $$
 BEGIN
   INSERT INTO storage.buckets (id, name, public, file_size_limit, allowed_mime_types) 
@@ -362,7 +470,8 @@ BEGIN
     ('property-images', 'property-images', true, 52428800, ARRAY['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/svg+xml']),
     ('avatars', 'avatars', true, 20971520, ARRAY['image/jpeg', 'image/png', 'image/webp', 'image/gif']),
     ('receipts', 'receipts', true, 20971520, ARRAY['image/jpeg', 'image/png', 'image/webp', 'application/pdf']),
-    ('documents', 'documents', true, 52428800, ARRAY['image/jpeg', 'image/png', 'image/webp', 'application/pdf'])
+    ('documents', 'documents', true, 52428800, ARRAY['image/jpeg', 'image/png', 'image/webp', 'application/pdf']),
+    ('service-attachments', 'service-attachments', true, 52428800, ARRAY['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'application/pdf'])
   ON CONFLICT (id) DO UPDATE SET
     public = true,
     file_size_limit = EXCLUDED.file_size_limit,
@@ -370,45 +479,209 @@ BEGIN
 EXCEPTION WHEN OTHERS THEN NULL;
 END $$;
 
--- Storage RLS Policies: Public viewing & open upload/management
+-- Storage RLS Policies
 DO $$
 BEGIN
   DROP POLICY IF EXISTS "Public Select Storage Objects" ON storage.objects;
   CREATE POLICY "Public Select Storage Objects" ON storage.objects 
-    FOR SELECT USING (bucket_id IN ('property-images', 'avatars', 'receipts', 'documents'));
-EXCEPTION WHEN OTHERS THEN NULL;
-END $$;
+    FOR SELECT USING (bucket_id IN ('property-images', 'avatars', 'receipts', 'documents', 'service-attachments'));
 
-DO $$
-BEGIN
   DROP POLICY IF EXISTS "Public Insert Storage Objects" ON storage.objects;
   CREATE POLICY "Public Insert Storage Objects" ON storage.objects 
-    FOR INSERT WITH CHECK (bucket_id IN ('property-images', 'avatars', 'receipts', 'documents'));
-EXCEPTION WHEN OTHERS THEN NULL;
-END $$;
+    FOR INSERT WITH CHECK (bucket_id IN ('property-images', 'avatars', 'receipts', 'documents', 'service-attachments'));
 
-DO $$
-BEGIN
   DROP POLICY IF EXISTS "Public Update Storage Objects" ON storage.objects;
   CREATE POLICY "Public Update Storage Objects" ON storage.objects 
-    FOR UPDATE USING (bucket_id IN ('property-images', 'avatars', 'receipts', 'documents'))
-    WITH CHECK (bucket_id IN ('property-images', 'avatars', 'receipts', 'documents'));
-EXCEPTION WHEN OTHERS THEN NULL;
-END $$;
+    FOR UPDATE USING (bucket_id IN ('property-images', 'avatars', 'receipts', 'documents', 'service-attachments'))
+    WITH CHECK (bucket_id IN ('property-images', 'avatars', 'receipts', 'documents', 'service-attachments'));
 
-DO $$
-BEGIN
   DROP POLICY IF EXISTS "Public Delete Storage Objects" ON storage.objects;
   CREATE POLICY "Public Delete Storage Objects" ON storage.objects 
-    FOR DELETE USING (bucket_id IN ('property-images', 'avatars', 'receipts', 'documents'));
+    FOR DELETE USING (bucket_id IN ('property-images', 'avatars', 'receipts', 'documents', 'service-attachments'));
 EXCEPTION WHEN OTHERS THEN NULL;
 END $$;
 
 -- ==============================================================================
--- 6. PHOTO UPLOADING & DATABASE HELPER FUNCTIONS
+-- 6. PRODUCTION FUNCTIONS & STORED PROCEDURES (RPCs)
 -- ==============================================================================
 
--- 6.1 Upload / Append Property Photo Function
+-- 6.1 Atomic Wallet Peer-to-Peer Transfer Function
+CREATE OR REPLACE FUNCTION public.process_wallet_transfer(
+  p_sender_phone TEXT,
+  p_recipient_phone TEXT,
+  p_amount NUMERIC,
+  p_note TEXT DEFAULT 'Peer-to-peer wallet transfer'
+)
+RETURNS JSONB AS $$
+DECLARE
+  v_sender public.profiles%ROWTYPE;
+  v_recipient public.profiles%ROWTYPE;
+  v_trx_id TEXT := 'TX-' || UPPER(substr(md5(random()::text), 1, 8));
+BEGIN
+  IF p_amount <= 0 THEN
+    RETURN jsonb_build_object('success', false, 'error', 'Amount must be greater than zero');
+  END IF;
+
+  SELECT * INTO v_sender FROM public.profiles WHERE phone = p_sender_phone FOR UPDATE;
+  IF NOT FOUND THEN
+    RETURN jsonb_build_object('success', false, 'error', 'Sender account not found');
+  END IF;
+
+  IF v_sender.balance < p_amount THEN
+    RETURN jsonb_build_object('success', false, 'error', 'Insufficient wallet balance');
+  END IF;
+
+  SELECT * INTO v_recipient FROM public.profiles WHERE phone = p_recipient_phone FOR UPDATE;
+  IF NOT FOUND THEN
+    -- Auto-provision recipient profile if transfer was sent to unonboarded phone number
+    INSERT INTO public.profiles (phone, full_name, role, balance)
+    VALUES (p_recipient_phone, 'User ' || RIGHT(p_recipient_phone, 4), 'TENANT', 0.00)
+    RETURNING * INTO v_recipient;
+  END IF;
+
+  -- Debit Sender
+  UPDATE public.profiles
+  SET balance = balance - p_amount, updated_at = NOW()
+  WHERE id = v_sender.id;
+
+  -- Credit Recipient
+  UPDATE public.profiles
+  SET balance = balance + p_amount, updated_at = NOW()
+  WHERE id = v_recipient.id;
+
+  -- Sender Ledger Entry
+  INSERT INTO public.transactions (
+    user_id, user_phone, type, amount, recipient_phone, recipient_name,
+    payment_method, status, description, trx_id
+  ) VALUES (
+    v_sender.id, v_sender.phone, 'transfer_out', p_amount, v_recipient.phone,
+    v_recipient.full_name, 'Duyar Wallet', 'COMPLETED', p_note, v_trx_id || '-OUT'
+  );
+
+  -- Recipient Ledger Entry
+  INSERT INTO public.transactions (
+    user_id, user_phone, type, amount, recipient_phone, recipient_name,
+    payment_method, status, description, trx_id
+  ) VALUES (
+    v_recipient.id, v_recipient.phone, 'transfer_in', p_amount, v_sender.phone,
+    v_sender.full_name, 'Duyar Wallet', 'COMPLETED', p_note, v_trx_id || '-IN'
+  );
+
+  RETURN jsonb_build_object(
+    'success', true,
+    'trx_id', v_trx_id,
+    'amount', p_amount,
+    'sender_new_balance', (v_sender.balance - p_amount),
+    'recipient_name', v_recipient.full_name
+  );
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- 6.2 Approve Manual Recharge & Credit Balance
+CREATE OR REPLACE FUNCTION public.approve_recharge_request(
+  p_recharge_id UUID,
+  p_admin_phone TEXT DEFAULT '+8801977347402'
+)
+RETURNS JSONB AS $$
+DECLARE
+  v_recharge public.manual_recharges%ROWTYPE;
+  v_user public.profiles%ROWTYPE;
+BEGIN
+  SELECT * INTO v_recharge FROM public.manual_recharges WHERE id = p_recharge_id FOR UPDATE;
+  IF NOT FOUND THEN
+    RETURN jsonb_build_object('success', false, 'error', 'Recharge request not found');
+  END IF;
+
+  IF v_recharge.status = 'approved' THEN
+    RETURN jsonb_build_object('success', false, 'error', 'Recharge is already approved');
+  END IF;
+
+  SELECT * INTO v_user FROM public.profiles WHERE phone = v_recharge.user_phone FOR UPDATE;
+  IF NOT FOUND THEN
+    RETURN jsonb_build_object('success', false, 'error', 'User profile not found');
+  END IF;
+
+  -- Update recharge status
+  UPDATE public.manual_recharges
+  SET status = 'approved', reviewed_by = p_admin_phone, reviewed_at = NOW()
+  WHERE id = p_recharge_id;
+
+  -- Credit user balance
+  UPDATE public.profiles
+  SET balance = balance + v_recharge.amount, updated_at = NOW()
+  WHERE id = v_user.id;
+
+  -- Create completed deposit transaction
+  INSERT INTO public.transactions (
+    user_id, user_phone, type, amount, payment_method, status, description, trx_id
+  ) VALUES (
+    v_user.id, v_user.phone, 'deposit', v_recharge.amount,
+    UPPER(v_recharge.gateway), 'COMPLETED',
+    'Manual wallet recharge verified via ' || UPPER(v_recharge.gateway),
+    v_recharge.transaction_id
+  );
+
+  -- Notify user
+  INSERT INTO public.notifications (
+    user_id, user_phone, title, content, type
+  ) VALUES (
+    v_user.id, v_user.phone, 'Deposit Approved',
+    'Your ' || UPPER(v_recharge.gateway) || ' deposit of ৳' || v_recharge.amount || ' has been approved and added to your wallet.',
+    'SUCCESS'
+  );
+
+  RETURN jsonb_build_object(
+    'success', true,
+    'amount', v_recharge.amount,
+    'user_phone', v_recharge.user_phone,
+    'new_balance', (v_user.balance + v_recharge.amount)
+  );
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- 6.3 Approve Provider Application & Activate Role
+CREATE OR REPLACE FUNCTION public.approve_provider_application(
+  p_application_id UUID,
+  p_admin_phone TEXT DEFAULT '+8801977347402'
+)
+RETURNS JSONB AS $$
+DECLARE
+  v_app public.provider_applications%ROWTYPE;
+BEGIN
+  SELECT * INTO v_app FROM public.provider_applications WHERE id = p_application_id FOR UPDATE;
+  IF NOT FOUND THEN
+    RETURN jsonb_build_object('success', false, 'error', 'Application not found');
+  END IF;
+
+  UPDATE public.provider_applications
+  SET status = 'APPROVED'
+  WHERE id = p_application_id;
+
+  -- Update role on profile
+  IF v_app.role_type = 'LANDLORD' THEN
+    UPDATE public.profiles SET is_landlord = true, landlord_status = 'APPROVED', is_verified = true, updated_at = NOW() WHERE phone = v_app.phone;
+  ELSIF v_app.role_type = 'LOCATOR' THEN
+    UPDATE public.profiles SET is_locator = true, locator_status = 'APPROVED', is_verified = true, updated_at = NOW() WHERE phone = v_app.phone;
+  ELSIF v_app.role_type = 'MAINTENANCE' THEN
+    UPDATE public.profiles SET is_maintenance = true, maintenance_status = 'APPROVED', is_verified = true, updated_at = NOW() WHERE phone = v_app.phone;
+  ELSIF v_app.role_type = 'PICKDROP' THEN
+    UPDATE public.profiles SET is_pickdrop = true, pickdrop_status = 'APPROVED', is_verified = true, updated_at = NOW() WHERE phone = v_app.phone;
+  ELSIF v_app.role_type = 'SECURITY' THEN
+    UPDATE public.profiles SET is_security = true, security_status = 'APPROVED', is_verified = true, updated_at = NOW() WHERE phone = v_app.phone;
+  ELSIF v_app.role_type = 'MAID' THEN
+    UPDATE public.profiles SET is_maid = true, maid_status = 'APPROVED', is_verified = true, updated_at = NOW() WHERE phone = v_app.phone;
+  END IF;
+
+  RETURN jsonb_build_object(
+    'success', true,
+    'phone', v_app.phone,
+    'role_type', v_app.role_type,
+    'status', 'APPROVED'
+  );
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- 6.4 Upload / Append Property Photo Function
 CREATE OR REPLACE FUNCTION public.upload_property_photo(
   p_property_id UUID,
   p_photo_url TEXT,
@@ -444,7 +717,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
--- 6.2 Set User Avatar Function
+-- 6.5 Set User Avatar Function
 CREATE OR REPLACE FUNCTION public.set_user_avatar(
   p_user_phone TEXT,
   p_avatar_url TEXT
@@ -460,6 +733,10 @@ BEGIN
   WHERE phone = p_user_phone
   RETURNING * INTO v_profile;
 
+  IF NOT FOUND THEN
+    RETURN jsonb_build_object('success', false, 'error', 'Profile not found');
+  END IF;
+
   RETURN jsonb_build_object(
     'success', true,
     'phone', v_profile.phone,
@@ -468,151 +745,103 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
--- 6.3 Attach Recharge Receipt Image Function
-CREATE OR REPLACE FUNCTION public.attach_recharge_receipt(
-  p_recharge_id UUID,
-  p_receipt_url TEXT
+-- 6.6 Bookmark / Toggle Save Property Function
+CREATE OR REPLACE FUNCTION public.toggle_save_property(
+  p_user_phone TEXT,
+  p_property_id TEXT
 )
 RETURNS JSONB AS $$
 DECLARE
-  v_recharge public.manual_recharges%ROWTYPE;
+  v_exists BOOLEAN;
+  v_prop RECORD;
 BEGIN
-  UPDATE public.manual_recharges
-  SET 
-    receipt_url = p_receipt_url
-  WHERE id = p_recharge_id
-  RETURNING * INTO v_recharge;
+  SELECT EXISTS(
+    SELECT 1 FROM public.saved_properties 
+    WHERE user_phone = p_user_phone AND property_id = p_property_id
+  ) INTO v_exists;
 
-  RETURN jsonb_build_object(
-    'success', true,
-    'recharge_id', v_recharge.id,
-    'receipt_url', v_recharge.receipt_url
-  );
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
-
--- 6.4 Attach Provider Verification Document Function
-CREATE OR REPLACE FUNCTION public.attach_provider_document(
-  p_application_id UUID,
-  p_doc_url TEXT
-)
-RETURNS JSONB AS $$
-DECLARE
-  v_app public.provider_applications%ROWTYPE;
-BEGIN
-  UPDATE public.provider_applications
-  SET 
-    document_url = COALESCE(document_url, p_doc_url),
-    documents = array_append(COALESCE(documents, ARRAY[]::TEXT[]), p_doc_url)
-  WHERE id = p_application_id
-  RETURNING * INTO v_app;
-
-  RETURN jsonb_build_object(
-    'success', true,
-    'application_id', v_app.id,
-    'document_url', v_app.document_url,
-    'total_documents', array_length(v_app.documents, 1)
-  );
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
-
--- 6.5 Record Locator Listing & Award 5 BDT Commission
-CREATE OR REPLACE FUNCTION public.record_locator_listing(
-  p_locator_phone TEXT,
-  p_property_id UUID
-)
-RETURNS JSONB AS $$
-DECLARE
-  v_locator public.profiles%ROWTYPE;
-  v_reward NUMERIC(10, 2) := 5.00;
-BEGIN
-  -- Verify locator profile
-  SELECT * INTO v_locator FROM public.profiles WHERE phone = p_locator_phone;
-  IF NOT FOUND THEN
-    RETURN jsonb_build_object('success', false, 'error', 'Locator not found');
-  END IF;
-
-  -- Credit balance
-  UPDATE public.profiles
-  SET 
-    balance = balance + v_reward,
-    updated_at = NOW()
-  WHERE phone = p_locator_phone
-  RETURNING * INTO v_locator;
-
-  -- Record transaction ledger
-  INSERT INTO public.transactions (
-    user_id,
-    user_phone,
-    type,
-    amount,
-    method,
-    status,
-    description
-  ) VALUES (
-    v_locator.id,
-    v_locator.phone,
-    'locator_reward',
-    v_reward,
-    'Duyar Wallet',
-    'COMPLETED',
-    'Locator bounty reward for verified property listing #' || LEFT(p_property_id::TEXT, 8)
-  );
-
-  RETURN jsonb_build_object(
-    'success', true,
-    'locator_phone', p_locator_phone,
-    'reward_amount', v_reward,
-    'new_balance', v_locator.balance
-  );
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
-
--- 6.6 Broadcast Service Request to Verified Specialists
-CREATE OR REPLACE FUNCTION public.broadcast_service_request(
-  p_booking_id UUID,
-  p_category TEXT,
-  p_title TEXT,
-  p_area TEXT
-)
-RETURNS JSONB AS $$
-DECLARE
-  v_recipient RECORD;
-  v_count INTEGER := 0;
-BEGIN
-  -- Notify all approved providers in this category
-  FOR v_recipient IN 
-    SELECT id, phone FROM public.profiles 
-    WHERE 
-      (p_category ILIKE '%security%' AND (is_security = true OR role = 'SECURITY' OR role = 'ADMIN'))
-      OR (p_category ILIKE '%maid%' AND (is_maid = true OR role = 'MAID' OR role = 'ADMIN'))
-      OR (p_category ILIKE '%maintenance%' AND (is_maintenance = true OR role = 'MAINTENANCE' OR role = 'ADMIN'))
-      OR (p_category ILIKE '%pick%' AND (is_pickdrop = true OR role = 'PICKDROP' OR role = 'ADMIN'))
-  LOOP
-    INSERT INTO public.notifications (
-      user_id,
-      user_phone,
-      title,
-      content,
-      type,
-      metadata
+  IF v_exists THEN
+    DELETE FROM public.saved_properties 
+    WHERE user_phone = p_user_phone AND property_id = p_property_id;
+    RETURN jsonb_build_object('saved', false, 'property_id', p_property_id);
+  ELSE
+    -- Fetch property details
+    SELECT * INTO v_prop FROM public.properties WHERE id::text = p_property_id;
+    
+    INSERT INTO public.saved_properties (
+      user_phone, property_id, title, price, location, beds, baths, sqft, image, tag
     ) VALUES (
-      v_recipient.id,
-      v_recipient.phone,
-      'New ' || p_category || ' Service Request In ' || COALESCE(p_area, 'Dhaka'),
-      p_title || ' is pending your acceptance.',
-      'ALERT',
-      jsonb_build_object('booking_id', p_booking_id, 'category', p_category)
+      p_user_phone,
+      p_property_id,
+      COALESCE(v_prop.title, 'Residential Property'),
+      COALESCE(v_prop.price, '৳ 45,000'),
+      COALESCE(v_prop.location, 'Dhaka'),
+      COALESCE(v_prop.beds, 3),
+      COALESCE(v_prop.baths, 2),
+      COALESCE(v_prop.sqft, 1500),
+      COALESCE(v_prop.image_url, ''),
+      COALESCE(v_prop.tag, 'RENT')
     );
-    v_count := v_count + 1;
-  END LOOP;
-
-  RETURN jsonb_build_object(
-    'success', true,
-    'broadcast_recipients', v_count
-  );
+    RETURN jsonb_build_object('saved', true, 'property_id', p_property_id);
+  END IF;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- 6.7 Nearby Properties Spatial Search Function
+CREATE OR REPLACE FUNCTION public.get_nearby_properties(
+  p_lat DOUBLE PRECISION,
+  p_lng DOUBLE PRECISION,
+  p_radius_km DOUBLE PRECISION DEFAULT 10.0
+)
+RETURNS TABLE (
+  id UUID,
+  title TEXT,
+  price TEXT,
+  numeric_price NUMERIC,
+  location TEXT,
+  latitude DOUBLE PRECISION,
+  longitude DOUBLE PRECISION,
+  distance_km NUMERIC,
+  type TEXT,
+  beds INTEGER,
+  baths INTEGER,
+  sqft INTEGER,
+  image_url TEXT,
+  is_verified BOOLEAN
+) AS $$
+BEGIN
+  RETURN QUERY
+  SELECT 
+    p.id,
+    p.title,
+    p.price,
+    p.numeric_price,
+    p.location,
+    p.latitude,
+    p.longitude,
+    ROUND(
+      (6371 * acos(
+        cos(radians(p_lat)) * cos(radians(p.latitude)) *
+        cos(radians(p.longitude) - radians(p_lng)) +
+        sin(radians(p_lat)) * sin(radians(p.latitude))
+      ))::numeric, 2
+    ) AS distance_km,
+    p.type,
+    p.beds,
+    p.baths,
+    p.sqft,
+    p.image_url,
+    p.is_verified
+  FROM public.properties p
+  WHERE p.status = 'APPROVED'
+    AND (6371 * acos(
+      cos(radians(p_lat)) * cos(radians(p.latitude)) *
+      cos(radians(p.longitude) - radians(p_lng)) +
+      sin(radians(p_lat)) * sin(radians(p.latitude))
+    )) <= p_radius_km
+  ORDER BY distance_km ASC;
+END;
+$$ LANGUAGE plpgsql STABLE;
 
 -- ==============================================================================
 -- 7. AUTOMATIC AUTH TRIGGERS & TIMESTAMP HANDLERS
@@ -692,113 +921,87 @@ CREATE TRIGGER on_profiles_updated BEFORE UPDATE ON public.profiles FOR EACH ROW
 DROP TRIGGER IF EXISTS on_properties_updated ON public.properties;
 CREATE TRIGGER on_properties_updated BEFORE UPDATE ON public.properties FOR EACH ROW EXECUTE FUNCTION public.handle_updated_at();
 
+DROP TRIGGER IF EXISTS on_maintenance_updated ON public.maintenance_tickets;
+CREATE TRIGGER on_maintenance_updated BEFORE UPDATE ON public.maintenance_tickets FOR EACH ROW EXECUTE FUNCTION public.handle_updated_at();
+
+DROP TRIGGER IF EXISTS on_pickdrop_updated ON public.pickdrop_requests;
+CREATE TRIGGER on_pickdrop_updated BEFORE UPDATE ON public.pickdrop_requests FOR EACH ROW EXECUTE FUNCTION public.handle_updated_at();
+
 -- ==============================================================================
--- 8. REALTIME REPLICATION CONFIGURATION
+-- 8. REALTIME REPLICATION (WebSockets & Realtime Subscriptions)
 -- ==============================================================================
 DO $$
+DECLARE
+  tbl text;
+  realtime_tables text[] := ARRAY[
+    'profiles', 'properties', 'property_visits', 'saved_properties',
+    'transactions', 'manual_recharges', 'payout_requests', 'service_bookings',
+    'maintenance_tickets', 'scheduled_maintenance_visits', 'pickdrop_requests',
+    'chat_messages', 'live_tracking_telemetry', 'notifications'
+  ];
 BEGIN
-  ALTER PUBLICATION supabase_realtime ADD TABLE public.properties;
-EXCEPTION WHEN OTHERS THEN NULL;
-END $$;
-
-DO $$
-BEGIN
-  ALTER PUBLICATION supabase_realtime ADD TABLE public.property_visits;
-EXCEPTION WHEN OTHERS THEN NULL;
-END $$;
-
-DO $$
-BEGIN
-  ALTER PUBLICATION supabase_realtime ADD TABLE public.transactions;
-EXCEPTION WHEN OTHERS THEN NULL;
-END $$;
-
-DO $$
-BEGIN
-  ALTER PUBLICATION supabase_realtime ADD TABLE public.service_bookings;
-EXCEPTION WHEN OTHERS THEN NULL;
-END $$;
-
-DO $$
-BEGIN
-  ALTER PUBLICATION supabase_realtime ADD TABLE public.maintenance_tickets;
-EXCEPTION WHEN OTHERS THEN NULL;
-END $$;
-
-DO $$
-BEGIN
-  ALTER PUBLICATION supabase_realtime ADD TABLE public.pickdrop_requests;
-EXCEPTION WHEN OTHERS THEN NULL;
-END $$;
-
-DO $$
-BEGIN
-  ALTER PUBLICATION supabase_realtime ADD TABLE public.manual_recharges;
-EXCEPTION WHEN OTHERS THEN NULL;
-END $$;
-
-DO $$
-BEGIN
-  ALTER PUBLICATION supabase_realtime ADD TABLE public.notifications;
-EXCEPTION WHEN OTHERS THEN NULL;
-END $$;
-
-DO $$
-BEGIN
-  ALTER PUBLICATION supabase_realtime ADD TABLE public.profiles;
-EXCEPTION WHEN OTHERS THEN NULL;
+  FOREACH tbl IN ARRAY realtime_tables LOOP
+    BEGIN
+      EXECUTE format('ALTER PUBLICATION supabase_realtime ADD TABLE public.%I', tbl);
+    EXCEPTION WHEN OTHERS THEN NULL;
+    END;
+  END LOOP;
 END $$;
 
 -- ==============================================================================
--- 9. PRODUCTION INITIALIZATION (Admin Master Profile Only - Zero Mock Listings)
+-- 9. MASTER ADMIN INITIALIZATION (Single Source of Truth)
 -- ==============================================================================
+DO $$
+BEGIN
+  INSERT INTO public.profiles (
+    phone,
+    full_name,
+    role,
+    balance,
+    is_verified,
+    is_landlord,
+    landlord_status,
+    is_locator,
+    locator_status,
+    is_maintenance,
+    maintenance_status,
+    is_pickdrop,
+    pickdrop_status,
+    is_security,
+    security_status,
+    is_maid,
+    maid_status
+  ) VALUES (
+    '+8801977347402',
+    'Duyar Administrator',
+    'ADMIN',
+    50000.00,
+    true,
+    true, 'APPROVED',
+    true, 'APPROVED',
+    true, 'APPROVED',
+    true, 'APPROVED',
+    true, 'APPROVED',
+    true, 'APPROVED'
+  )
+  ON CONFLICT (phone) DO UPDATE SET
+    role = 'ADMIN',
+    is_verified = true,
+    is_landlord = true,
+    landlord_status = 'APPROVED',
+    is_locator = true,
+    locator_status = 'APPROVED',
+    is_maintenance = true,
+    maintenance_status = 'APPROVED',
+    is_security = true,
+    security_status = 'APPROVED',
+    is_maid = true,
+    maid_status = 'APPROVED',
+    is_pickdrop = true,
+    pickdrop_status = 'APPROVED';
+END $$;
 
-INSERT INTO public.profiles (
-  phone,
-  full_name,
-  role,
-  balance,
-  is_verified,
-  is_landlord,
-  landlord_status,
-  is_locator,
-  locator_status,
-  is_maintenance,
-  maintenance_status,
-  is_pickdrop,
-  pickdrop_status,
-  is_security,
-  security_status,
-  is_maid,
-  maid_status
-) VALUES (
-  '+8801977347402',
-  'Duyar Administrator',
-  'ADMIN',
-  0.00,
-  true,
-  true, 'APPROVED',
-  true, 'APPROVED',
-  true, 'APPROVED',
-  true, 'APPROVED',
-  true, 'APPROVED',
-  true, 'APPROVED'
-)
-ON CONFLICT (phone) DO UPDATE SET
-  role = 'ADMIN',
-  is_verified = true,
-  is_landlord = true,
-  landlord_status = 'APPROVED',
-  is_locator = true,
-  locator_status = 'APPROVED',
-  is_maintenance = true,
-  maintenance_status = 'APPROVED',
-  is_security = true,
-  security_status = 'APPROVED',
-  is_maid = true,
-  maid_status = 'APPROVED',
-  is_pickdrop = true,
-  pickdrop_status = 'APPROVED';
-
--- Confirmation Output
-SELECT 'Duyar Database & Storage setup completed successfully! Production environment is pristine and live.' AS result;
+-- ==============================================================================
+-- 10. SETUP CONFIRMATION
+-- ==============================================================================
+SELECT 'Duyar Supabase Database & Realtime infrastructure successfully provisioned! 20 Tables, 5 Storage Buckets, Triggers, and Functions are ready.' AS result;

@@ -57,19 +57,19 @@ const SEED_LOGS: AuditLogEntry[] = [
     title: 'Bank Payout Processed',
     details: 'Payout PO-7712 of ৳ 12,500 transferred to City Bank A/C 21084931. Reference: CB-TX-88219.',
     targetId: 'PO-7712',
-    targetName: 'Md. Kabir Hossain',
+    targetName: 'Certified Specialist',
     amount: 12500,
     status: 'SUCCESS'
   },
   {
     id: 'AUD-9078',
     timestamp: new Date(Date.now() - 1000 * 60 * 240).toISOString(),
-    operator: 'Zahid Anwar (Super Admin)',
+    operator: 'HQ Admin Dispatcher',
     operatorRole: 'Master Administrator',
     action: 'SERVICE_DISPATCH_MONITOR',
     category: 'Services',
     title: 'Electrical Repair Order Dispatched',
-    details: 'Work order for AC & Appliance fix assigned to certified specialist Md. Kabir Hossain in Banani.',
+    details: 'Work order for AC & Appliance fix assigned to certified specialist in Banani.',
     targetId: 'TK-ELECT-01',
     targetName: 'AC Maintenance Ticket',
     status: 'INFO'

@@ -42,14 +42,28 @@ const LEGACY_KEYS_TO_PURGE = [
 export function sanitizeAppStorageForProduction(): void {
   if (typeof window === 'undefined') return;
   try {
-    const hasSanitized = localStorage.getItem('duyar_fresh_live_launch_v1');
+    const hasSanitized = localStorage.getItem('duyar_fresh_live_launch_v3');
     if (!hasSanitized) {
       LEGACY_KEYS_TO_PURGE.forEach(key => {
         try {
           localStorage.removeItem(key);
         } catch {}
       });
-      localStorage.setItem('duyar_fresh_live_launch_v1', 'true');
+      localStorage.setItem('duyar_fresh_live_launch_v3', 'true');
+    }
+
+    // Active scrubber: strip any legacy demo/mock image URLs from all duyar stored state
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && key.startsWith('duyar_')) {
+        const val = localStorage.getItem(key);
+        if (val && (val.includes('aida-public') || val.includes('unsplash.com'))) {
+          try {
+            const cleaned = val.replace(/https:\/\/[^"'\s]*(aida-public|unsplash\.com)[^"'\s]*/g, '');
+            localStorage.setItem(key, cleaned);
+          } catch {}
+        }
+      }
     }
   } catch (err) {
     console.debug('Storage sanitizer notice:', err);

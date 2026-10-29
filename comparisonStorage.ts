@@ -107,7 +107,7 @@ export function addToCompare(property: Property | any): { success: boolean; reas
     beds: Number(property.beds) || 3,
     baths: Number(property.baths) || 3,
     sqft: Number(property.sqft) || 1650,
-    image: property.image || property.images?.[0] || 'https://lh3.googleusercontent.com/aida-public/AB6AXuDfOmiokSYUBoIBV4Q5qSDBSgxAoBCbZd_B2x1rYjOecezRauBO2EqLwSAxE6rNMlbhSnVIxE4dzUkdH6NRKfUKgYaSwy8JSSONyOQ_jZ_OKTNuKK6r4LVg1i4LUSgqMS7M2BGTkW9M8qPx122cW87ZVt-MMyYTGAn3xqJ6Mfy0G7GvnjUZPVVCrjFVtKf6ITEqVbB3TsGF2n-6e8ZIEW0Yp9VAqYn9agAC51wY2X8iMEQ1B2cuAaddVvz_dl9V6DTcEILS58B_Ue0',
+    image: property.image || property.images?.[0] || '',
     tag: property.tag || 'FOR RENT',
     type: property.type || 'Flat',
     tags: extractedTags,

@@ -127,7 +127,7 @@ export async function toggleSaveProperty(
       beds: Number(property?.beds) || 3,
       baths: Number(property?.baths) || 2,
       sqft: Number(property?.sqft) || 1500,
-      image: property?.image || property?.img || "https://lh3.googleusercontent.com/aida-public/AB6AXuDfOmiokSYUBoIBV4Q5qSDBSgxAoBCbZd_B2x1rYjOecezRauBO2EqLwSAxE6rNMlbhSnVIxE4dzUkdH6NRKfUKgYaSwy8JSSONyOQ_jZ_OKTNuKK6r4LVg1i4LUSgqMS7M2BGTkW9M8qPx122cW87ZVt-MMyYTGAn3xqJ6Mfy0G7GvnjUZPVVCrjFVtKf6ITEqVbB3TsGF2n-6e8ZIEW0Yp9VAqYn9agAC51wY2X8iMEQ1B2cuAaddVvz_dl9V6DTcEILS58B_Ue0",
+      image: property?.image || property?.img || "",
       tag: normalizeTag(property?.tag || property?.type),
       savedAt: new Date().toISOString(),
       availableMonth: property?.availableMonth || 'This Month'
@@ -239,7 +239,7 @@ export async function syncSavedPropertiesFromSupabase(userPhone?: string): Promi
       beds: Number(d.beds) || 3,
       baths: Number(d.baths) || 2,
       sqft: Number(d.sqft) || 1500,
-      image: d.image_url || d.image || 'https://lh3.googleusercontent.com/aida-public/AB6AXuDfOmiokSYUBoIBV4Q5qSDBSgxAoBCbZd_B2x1rYjOecezRauBO2EqLwSAxE6rNMlbhSnVIxE4dzUkdH6NRKfUKgYaSwy8JSSONyOQ_jZ_OKTNuKK6r4LVg1i4LUSgqMS7M2BGTkW9M8qPx122cW87ZVt-MMyYTGAn3xqJ6Mfy0G7GvnjUZPVVCrjFVtKf6ITEqVbB3TsGF2n-6e8ZIEW0Yp9VAqYn9agAC51wY2X8iMEQ1B2cuAaddVvz_dl9V6DTcEILS58B_Ue0',
+      image: d.image_url || d.image || '',
       tag: normalizeTag(d.tag),
       savedAt: d.saved_at || new Date().toISOString()
     }));

@@ -1,12 +1,6 @@
 <!DOCTYPE html>
 <html lang="en" class="dark">
 <head>
-    <!-- Guarantee @vitejs/plugin-react preamble detection in dev environment -->
-    <script>
-        window.__vite_plugin_react_preamble_installed__ = true;
-        window.$RefreshReg$ = window.$RefreshReg$ || function() {};
-        window.$RefreshSig$ = window.$RefreshSig$ || function() { return function(type) { return type; }; };
-    </script>
 
     <!-- Safeguard global fetch against read-only getter restrictions in iframe/browser environments -->
     <script>
@@ -45,9 +39,12 @@
             if (typeof window !== 'undefined') {
                 try {
                     var OrigWS = window.WebSocket;
-                    var SafeWS = function(url, protocols) {
-                        var isHmr = (protocols && (protocols === 'vite-hmr' || (Array.isArray(protocols) && protocols.indexOf('vite-hmr') !== -1))) ||
-                                    (typeof url === 'string' && (url.indexOf('vite-hmr') !== -1 || url.indexOf(':3000') !== -1));
+                    function SafeWS(url, protocols) {
+                        var isApiRealtime = typeof url === 'string' && url.indexOf('/api/realtime') !== -1;
+                        var isHmr = !isApiRealtime && (
+                            (protocols && (protocols === 'vite-hmr' || (Array.isArray(protocols) && protocols.indexOf('vite-hmr') !== -1))) ||
+                            (typeof url === 'string' && url.indexOf('vite-hmr') !== -1)
+                        );
                         
                         var listeners = {};
                         var socket = {
@@ -102,7 +99,7 @@
                         }, 0);
 
                         return socket;
-                    };
+                    }
                     if (OrigWS) {
                         SafeWS.prototype = OrigWS.prototype;
                         SafeWS.CONNECTING = OrigWS.CONNECTING || 0;
@@ -169,14 +166,14 @@
     </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Duyar Real Estate 2.2</title>
+    <title>Duyar Real Estate 2.5</title>
     <meta name="description" content="A high-end real estate and property rental application with glassmorphism UI, search grounding, and advanced filtering.">
-    <meta property="og:title" content="Duyar Real Estate 2.2">
-    <meta property="og:description" content="A high-end real estate and property rental application with glassmorphism UI, search grounding, and advanced filtering.">
+    <meta property="og:title" content="Duyar Real Estate &amp; Super App">
+    <meta property="og:description" content="Duyar (দুয়ার - The Door): The magical doorway covering verified properties, security, maintenance, maid care, logistics, and emergency services.">
     <meta property="og:image" content="/duyar-symbol.png">
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="Duyar Real Estate Platform">
-    <meta name="twitter:description" content="Premier real estate & resident super app in Bangladesh.">
+    <meta name="twitter:title" content="Duyar — The Door to Real Estate &amp; Super Services">
+    <meta name="twitter:description" content="The magical open doorway covering all real estate properties, security, maid, maintenance, pick & drop, and emergency services.">
     <meta name="twitter:image" content="/duyar-symbol.png">
 
     <!-- PWA & Mobile Web App Capabilities -->
@@ -431,33 +428,21 @@
 <link rel="stylesheet" href="/index.css">
 </head>
 <body class="font-display text-white antialiased selection:bg-primary/30">
+    <script>
+        // Ensure stale caches from prior builds are purged immediately before scripts run
+        (function() {
+            try {
+                if ('caches' in window) {
+                    caches.keys().then(function(keys) {
+                        for (var i = 0; i < keys.length; i++) {
+                            caches.delete(keys[i]);
+                        }
+                    });
+                }
+            } catch (e) {}
+        })();
+    </script>
     <div id="root"></div>
     <script type="module" src="/index.tsx"></script>
-    <!-- Duyar PWA Service Worker: Has SW, Has Logic, Periodic Sync, Background Sync, Push Notifications, Offline Support -->
-    <script>
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', function() {
-                navigator.serviceWorker.register('/sw.js', { scope: '/' })
-                    .then(function(reg) {
-                        console.log('[Duyar SW] Active with scope:', reg.scope);
-                        if ('sync' in reg) {
-                            reg.sync.register('sync-offline-actions').catch(function() {});
-                        }
-                        if ('periodicSync' in reg && navigator.permissions && navigator.permissions.query) {
-                            navigator.permissions.query({ name: 'periodic-background-sync' }).then(function(status) {
-                                if (status.state === 'granted') {
-                                    reg.periodicSync.register('periodic-property-updates', {
-                                        minInterval: 12 * 60 * 60 * 1000
-                                    }).catch(function() {});
-                                }
-                            }).catch(function() {});
-                        }
-                    })
-                    .catch(function(err) {
-                        console.warn('[Duyar SW] Registration note:', err);
-                    });
-            });
-        }
-    </script>
 </body>
 </html>

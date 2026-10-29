@@ -72,6 +72,27 @@ self.addEventListener('fetch', (event: FetchEvent) => {
   if (request.method !== 'GET') return;
   if (url.origin.includes('supabase.co')) return;
 
+  // Never cache or intercept Vite internal modules, HMR, dependencies, script files, or API requests
+  if (
+    url.pathname.startsWith('/@') ||
+    url.pathname.startsWith('/node_modules/') ||
+    url.pathname.includes('.vite') ||
+    url.pathname.startsWith('/api/') ||
+    url.searchParams.has('import') ||
+    url.searchParams.has('v') ||
+    url.searchParams.has('t') ||
+    url.pathname.endsWith('.tsx') ||
+    url.pathname.endsWith('.ts') ||
+    url.pathname.endsWith('.jsx') ||
+    url.pathname.endsWith('.js') ||
+    url.pathname.endsWith('.mjs') ||
+    url.pathname.endsWith('.map') ||
+    request.destination === 'script' ||
+    request.destination === 'worker'
+  ) {
+    return;
+  }
+
   // Navigation requests: Network-first, fallback to cache, then offline.html
   if (request.mode === 'navigate') {
     event.respondWith(

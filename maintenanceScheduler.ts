@@ -160,9 +160,9 @@ export function scheduleMaintenanceVisit(params: {
     serviceType: params.serviceType,
     serviceTitle: params.serviceTitle || `${params.serviceType} Service Visit`,
     providerName: params.providerName || 'Licensed Duyar Specialist',
-    providerRole: params.providerRole || 'Master Technician • 4.9★',
+    providerRole: params.providerRole || 'Master Technician • Verified',
     providerPhone: params.providerPhone || '+880 1712-984512',
-    providerImage: params.providerImage || 'https://lh3.googleusercontent.com/aida-public/AB6AXuDaX6sDjQxpvUGeB_0Not7GzlTANyX0X71oCtAQZnlfX-kNT3gwtoOBsEs1UeWpAm1ath0eBsxXu5SwYrJt0xkZt--1UO42wIRyfJiY1FbTZm_4n6S6LEOmFKpTF-fwJLpQVvN2yMO8iKFMIaVhmTdA2gkLZWk0SwOMa0Wi8KmJ2TnMkZo9Sql6FCefcWPX7V5nrbVNpjksJVtryOenL8Z38OAV6uzzy9zr7Z20NN-5foEcNq_zB9akXMpZrujmbxb0WY3foZr7iTA',
+    providerImage: params.providerImage || '',
     customerName: params.customerName || 'Resident',
     customerPhone: params.customerPhone || '',
     userId: params.userId,
@@ -374,8 +374,8 @@ export function simulateDueNotification(visitId?: string): ScheduledMaintenanceV
     target = scheduleMaintenanceVisit({
       serviceType: 'Electrical',
       serviceTitle: 'Electrical Diagnostic & Circuit Fix',
-      providerName: 'Md. Kabir Hossain',
-      providerRole: 'Licensed Senior Electrician • 4.9★',
+      providerName: 'Licensed Electrician',
+      providerRole: 'Licensed Senior Electrician • Verified',
       address: 'House 14, Road 11, Block D, Banani, Dhaka'
     });
   }

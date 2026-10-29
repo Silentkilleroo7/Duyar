@@ -92,6 +92,7 @@ import PickDropDashboard from './components/dashboards/PickDropDashboard';
 
 // Admin Panel Suite Imports
 import AdminWebDashboard from './admin-panel';
+import { AdminLoginGate } from './components/AdminLoginGate';
 import AdminDashboard from './components/admin/AdminDashboard';
 import AdminLiveTracking from './components/admin/AdminLiveTracking';
 import AdminRevenue from './components/admin/AdminRevenue';
@@ -244,6 +245,7 @@ const App: React.FC = () => {
       Screen.SECURITY_GUARD_DASHBOARD,
       Screen.MAINTENANCE_DASHBOARD,
       Screen.PICK_DROP_DASHBOARD,
+      Screen.ADMIN_LOGIN_GATE,
       Screen.ADMIN_DASHBOARD,
       Screen.ADMIN_LIVE_TRACKING,
       Screen.ADMIN_REVENUE,
@@ -267,7 +269,19 @@ const App: React.FC = () => {
     }
     if (pushHistory && typeof window !== 'undefined') {
       try {
-        window.history.pushState({ screen }, '');
+        if (screen === Screen.ADMIN_DASHBOARD || screen === Screen.ADMIN_LOGIN_GATE) {
+          if (!window.location.pathname.toLowerCase().startsWith('/admin')) {
+            window.history.pushState({ screen }, '', '/admin');
+          } else {
+            window.history.pushState({ screen }, '');
+          }
+        } else {
+          if (window.location.pathname.toLowerCase().startsWith('/admin')) {
+            window.history.pushState({ screen }, '', '/');
+          } else {
+            window.history.pushState({ screen }, '');
+          }
+        }
       } catch (e) {}
     }
     setCurrentScreen(screen);
@@ -338,10 +352,31 @@ const App: React.FC = () => {
     // Purge any legacy demo mock data keys from browser localStorage
     sanitizeAppStorageForProduction();
 
+    // Strictly check if direct /admin URL is entered in the browser address bar
+    const checkIsDirectAdmin = () => {
+      try {
+        const path = window.location.pathname.toLowerCase();
+        return path === '/admin' || path.startsWith('/admin/');
+      } catch (e) {
+        return false;
+      }
+    };
+
+    const isDirectAdmin = checkIsDirectAdmin();
+
     const storedPhone = localStorage.getItem('duyar_user_phone');
     if (storedPhone) {
       fetchProfile(storedPhone);
-      navigate(Screen.HOME);
+      if (isDirectAdmin) {
+        if (storedPhone === ADMIN_PHONE) {
+          navigate(Screen.ADMIN_DASHBOARD);
+        } else {
+          // If non-admin user hits /admin, show dedicated Admin Login Gate
+          navigate(Screen.ADMIN_LOGIN_GATE);
+        }
+      } else {
+        navigate(Screen.HOME);
+      }
     } else {
       supabase.auth.getSession().then(({ data: { session } }) => {
         setSession(session);
@@ -350,14 +385,30 @@ const App: React.FC = () => {
           const phoneFromEmail = session.user.email.split('@')[0];
           const phone = '+' + phoneFromEmail;
           fetchProfile(phone);
-          navigate(Screen.HOME);
+          if (isDirectAdmin) {
+            if (phone === ADMIN_PHONE) {
+              navigate(Screen.ADMIN_DASHBOARD);
+            } else {
+              navigate(Screen.ADMIN_LOGIN_GATE);
+            }
+          } else {
+            navigate(Screen.HOME);
+          }
         } else {
           localStorage.setItem('duyar_installed', 'true');
           localStorage.setItem('duyar_permissions_granted', 'true');
-          setCurrentScreen(Screen.LOGIN);
+          if (isDirectAdmin) {
+            // Unauthenticated user hitting /admin gets dedicated Admin Login Gate
+            setCurrentScreen(Screen.ADMIN_LOGIN_GATE);
+          } else {
+            setCurrentScreen(Screen.LOGIN);
+          }
         }
       }).catch((err) => {
         console.warn("Session retrieval fallback:", err);
+        if (isDirectAdmin) {
+          setCurrentScreen(Screen.ADMIN_LOGIN_GATE);
+        }
       });
     }
 
@@ -367,7 +418,15 @@ const App: React.FC = () => {
         const phoneFromEmail = newSession.user.email.split('@')[0];
         const phone = '+' + phoneFromEmail;
         await fetchProfile(phone);
-        navigate(Screen.HOME);
+        if (checkIsDirectAdmin()) {
+          if (phone === ADMIN_PHONE) {
+            navigate(Screen.ADMIN_DASHBOARD);
+          } else {
+            navigate(Screen.ADMIN_LOGIN_GATE);
+          }
+        } else {
+          navigate(Screen.HOME);
+        }
       }
     });
 
@@ -433,7 +492,14 @@ const App: React.FC = () => {
 
     // Android Hardware / Swipe Back Navigation Listener
     const handlePopState = (e: PopStateEvent) => {
-      if (e.state && e.state.screen) {
+      if (checkIsDirectAdmin()) {
+        const currentPhone = localStorage.getItem('duyar_user_phone');
+        if (currentPhone === ADMIN_PHONE) {
+          navigate(Screen.ADMIN_DASHBOARD, false);
+        } else {
+          navigate(Screen.ADMIN_LOGIN_GATE, false);
+        }
+      } else if (e.state && e.state.screen) {
         navigate(e.state.screen, false);
       } else {
         navigate(Screen.HOME, false);
@@ -747,7 +813,6 @@ const App: React.FC = () => {
           onSecurity={() => navigate(Screen.ACCOUNT_SECURITY)}
           onSupport={() => navigate(Screen.HELP_SUPPORT)}
           onLogout={handleLogout}
-          onAdminHub={() => navigate(Screen.ADMIN_DASHBOARD)}
           isAdmin={isAdmin}
           userProfile={userProfile}
           onNavigate={navigate}
@@ -879,21 +944,17 @@ const App: React.FC = () => {
         const isPd = cat.toLowerCase().includes('pick') || cat.toLowerCase().includes('drop');
 
         const chatProvider = {
-          id: activeChatService?.id || (isElec ? 'prov-elec-1' : isPlumb ? 'prov-plm-1' : isMaid ? 'prov-md-1' : isSec ? 'prov-sec-1' : isPd ? 'prov-pd-1' : 'prov-maint-1'),
+          id: activeChatService?.id || (isElec ? 'prov-elec' : isPlumb ? 'prov-plm' : isMaid ? 'prov-md' : isSec ? 'prov-sec' : isPd ? 'prov-pd' : 'prov-maint'),
           name: activeChatService?.providerName && !activeChatService.providerName.includes('Awaiting')
             ? activeChatService.providerName
-            : (isElec ? 'Md. Kabir Hossain' : isPlumb ? 'Ariful Islam' : isMaid ? 'Fatema Begum' : isSec ? 'Habibur Rahman' : isPd ? 'Rakibul Islam' : 'Ahmed Hassan'),
-          rating: 4.9,
-          jobsDone: isElec ? 140 : 120,
-          location: 'Banani, Dhaka',
+            : (isElec ? 'Electrical Specialist' : isPlumb ? 'Plumbing Specialist' : isMaid ? 'Housekeeping Specialist' : isSec ? 'Security Specialist' : isPd ? 'Logistics Pilot' : 'Maintenance Specialist'),
+          rating: 5.0,
+          jobsDone: 0,
+          location: activeChatService?.location || 'Banani, Dhaka',
           price: activeChatService?.price || (isSec ? '৳ 15,000' : '৳ 1,250'),
           category: cat,
           online: true,
-          image: activeChatService?.providerImage || (isSec 
-            ? 'https://lh3.googleusercontent.com/aida-public/AB6AXuDaX6sDjQxpvUGeB_0Not7GzlTANyX0X71oCtAQZnlfX-kNT3gwtoOBsEs1UeWpAm1ath0eBsxXu5SwYrJt0xkZt--1UO42wIRyfJiY1FbTZm_4n6S6LEOmFKpTF-fwJLpQVvN2yMO8iKFMIaVhmTdA2gkLZWk0SwOMa0Wi8KmJ2TnMkZo9Sql6FCefcWPX7V5nrbVNpjksJVtryOenL8Z38OAV6uzzy9zr7Z20NN-5foEcNq_zB9akXMpZrujmbxb0WY3foZr7iTA'
-            : isPd 
-              ? 'https://lh3.googleusercontent.com/aida-public/AB6AXuDXZy6E1Soj2pErXdy4eQRKJbWxJAgcwi3MpDmmBPDUMEMAJF8TJvxYtZmmo2pygB3y_aRhbl_0xzuVgFcPaCz2wh25mXO4mSMlUQhve85hjvh2VuY58I0sddXNLciQYubbZwqYagKQSzbNY6_Oym0rrcSDRUNg_DMoSfy4jbwmlUSG39KHKSekR19BYTdCTpTMMX6fUkcT0h8VzLd8znWmTMTzUig1GhHJZJaM80poHpC16kZy7dU0ttzsYAUkzVmTa6qvu6DQixE'
-              : 'https://lh3.googleusercontent.com/aida-public/AB6AXuDaX6sDjQxpvUGeB_0Not7GzlTANyX0X71oCtAQZnlfX-kNT3gwtoOBsEs1UeWpAm1ath0eBsxXu5SwYrJt0xkZt--1UO42wIRyfJiY1FbTZm_4n6S6LEOmFKpTF-fwJLpQVvN2yMO8iKFMIaVhmTdA2gkLZWk0SwOMa0Wi8KmJ2TnMkZo9Sql6FCefcWPX7V5nrbVNpjksJVtryOenL8Z38OAV6uzzy9zr7Z20NN-5foEcNq_zB9akXMpZrujmbxb0WY3foZr7iTA')
+          image: activeChatService?.providerImage || ''
         };
 
         return (
@@ -974,7 +1035,55 @@ const App: React.FC = () => {
       );
 
       // Admin Panel Suite
-      case Screen.ADMIN_DASHBOARD: return <AdminWebDashboard onBackToApp={() => navigate(Screen.HOME)} />;
+      case Screen.ADMIN_LOGIN_GATE:
+        return (
+          <AdminLoginGate
+            adminPhone={ADMIN_PHONE}
+            onAdminLogin={(phone) => {
+              fetchProfile(phone);
+              try {
+                localStorage.setItem('duyar_user_phone', phone);
+                if (!window.location.pathname.toLowerCase().startsWith('/admin')) {
+                  window.history.replaceState({ screen: Screen.ADMIN_DASHBOARD }, '', '/admin');
+                }
+              } catch (e) {}
+              setCurrentScreen(Screen.ADMIN_DASHBOARD);
+            }}
+            onReturnToApp={() => {
+              try {
+                if (window.location.pathname.toLowerCase().startsWith('/admin')) {
+                  window.history.pushState(null, '', '/');
+                }
+              } catch (e) {}
+              navigate(Screen.HOME);
+            }}
+          />
+        );
+
+      case Screen.ADMIN_DASHBOARD: 
+        return (
+          <AdminWebDashboard 
+            onBackToApp={() => {
+              try {
+                if (window.location.hash === '#admin') {
+                  window.history.replaceState(null, '', window.location.pathname);
+                }
+                const params = new URLSearchParams(window.location.search);
+                if (params.has('admin') || params.has('view') || params.has('screen')) {
+                  params.delete('admin');
+                  params.delete('view');
+                  params.delete('screen');
+                  const newSearch = params.toString() ? `?${params.toString()}` : '';
+                  window.history.replaceState(null, '', window.location.pathname + newSearch);
+                }
+                if (window.location.pathname.toLowerCase().startsWith('/admin')) {
+                  window.history.pushState(null, '', '/');
+                }
+              } catch (e) {}
+              navigate(Screen.HOME);
+            }} 
+          />
+        );
       case Screen.ADMIN_LIVE_TRACKING: return <AdminLiveTracking onBack={() => navigate(Screen.ADMIN_DASHBOARD)} onSupport={() => navigate(Screen.ADMIN_SUPPORT)} />;
       case Screen.ADMIN_REVENUE: return <AdminRevenue onBack={() => navigate(Screen.ADMIN_DASHBOARD)} />;
       case Screen.ADMIN_PAYOUTS: return <AdminPayouts onBack={() => navigate(Screen.ADMIN_DASHBOARD)} />;

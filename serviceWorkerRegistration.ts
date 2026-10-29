@@ -29,6 +29,18 @@ export async function registerServiceWorker(): Promise<ServiceWorkerRegistration
   }
 
   try {
+    // Purge any stale dynamic/app shell caches containing mismatched Vite chunks
+    if ('caches' in window) {
+      try {
+        const cacheNames = await caches.keys();
+        for (const name of cacheNames) {
+          if (name.includes('duyar') || name.includes('workbox')) {
+            await caches.delete(name);
+          }
+        }
+      } catch (_) {}
+    }
+
     const registration = await navigator.serviceWorker.register('/sw.js', {
       scope: '/'
     });

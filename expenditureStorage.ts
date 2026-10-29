@@ -111,7 +111,7 @@ function getSeedExpenditures(): ExpenditureItem[] {
       month: '2026-10',
       paymentMethod: 'Duyar Wallet',
       receiptNo: 'SRV-ELEC-4401',
-      providerOrLandlord: 'Md. Kabir Hossain (Licensed Specialist)',
+      providerOrLandlord: 'Licensed Electrical Specialist',
       color: '#f59e0b', // Amber
       icon: 'bolt',
       notes: 'MCB replacement and diagnostic load balancing'
@@ -143,7 +143,7 @@ function getSeedExpenditures(): ExpenditureItem[] {
       month: '2026-10',
       paymentMethod: 'Duyar Wallet',
       receiptNo: 'SRV-PICK-771',
-      providerOrLandlord: 'Rakibul Islam (Mini Truck Pilot)',
+      providerOrLandlord: 'Verified Logistics Pilot',
       color: '#a855f7', // Purple
       icon: 'local_shipping',
       notes: 'Fast 45-min transit with live GPS tracking'

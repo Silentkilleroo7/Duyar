@@ -272,8 +272,8 @@ export function addMaintenanceTicket(ticketData: {
     price: ticketData.price,
     status: initialStatus,
     assignedAt: timeStr,
-    technicianName: ticketData.technicianName || (initialStatus === 'PENDING' ? 'Awaiting Provider Acceptance' : 'Md. Kabir Hossain'),
-    technicianRole: ticketData.technicianRole || (initialStatus === 'PENDING' ? 'Pending Provider Acceptance' : 'Licensed Senior Specialist • 4.9★'),
+    technicianName: ticketData.technicianName || (initialStatus === 'PENDING' ? 'Awaiting Provider Acceptance' : 'Field Specialist'),
+    technicianRole: ticketData.technicianRole || (initialStatus === 'PENDING' ? 'Pending Provider Acceptance' : 'Licensed Field Specialist'),
     technicianPhone: ticketData.technicianPhone || (initialStatus === 'PENDING' ? '' : '+880 1712-984512'),
     description: ticketData.description || 'Service request submitted.',
     image: ticketData.image,
@@ -304,8 +304,8 @@ export function acceptMaintenanceTicket(
   const timeStr = `Today, ${now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
   const current = tickets[index];
 
-  const assignedName = provider?.name || (current.category === 'Security & CCTV' ? 'Habibur Rahman' : 'Md. Kabir Hossain');
-  const assignedRole = provider?.role || (current.category === 'Security & CCTV' ? 'Senior Security Officer • 5.0★' : 'Licensed Senior Specialist • 4.9★');
+  const assignedName = provider?.name || (current.category === 'Security & CCTV' ? 'Security Specialist' : 'Field Technician');
+  const assignedRole = provider?.role || (current.category === 'Security & CCTV' ? 'Senior Security Specialist' : 'Licensed Field Specialist');
   const assignedPhone = provider?.phone || (current.category === 'Security & CCTV' ? '+880 1855-667788' : '+880 1712-984512');
 
   const updated: MaintenanceTicket = {

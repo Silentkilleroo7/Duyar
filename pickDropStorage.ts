@@ -1,3 +1,5 @@
+import { supabase } from './supabase';
+
 export interface PickDropRequest {
   id: string;
   vehicle: string;
@@ -93,6 +95,10 @@ export const updatePickDropStatus = (requestId: string, status: PickDropRequest[
     } else {
       window.dispatchEvent(new CustomEvent('duyar_pickdrop_updated', { detail: { id: requestId, status } }));
     }
+    // Sync with remote Supabase database
+    if (supabase) {
+      Promise.resolve(supabase.from('pickdrop_requests').update({ status }).eq('id', requestId)).catch(() => {});
+    }
   } catch (e) {
     console.error('Failed to update pick drop status:', e);
   }
@@ -110,6 +116,32 @@ export const saveActivePickDropRequest = (req: PickDropRequest): void => {
 
     // Dispatch custom event for real-time state sync across screens
     window.dispatchEvent(new CustomEvent('duyar_pickdrop_updated', { detail: tagged }));
+
+    // Sync with remote Supabase database
+    if (supabase) {
+      Promise.resolve(supabase.from('pickdrop_requests').upsert({
+        id: req.id,
+        vehicle_type: req.vehicle,
+        helpers_count: req.helpers,
+        items: req.items || [],
+        item_details: req.itemDetails || 'Relocation items',
+        special_notes: req.specialNotes || [],
+        pickup_floor: req.pickupFloor || null,
+        drop_floor: req.dropFloor || null,
+        pickup_area: req.pickupArea,
+        pickup_address: req.pickupAddress,
+        drop_area: req.dropArea,
+        drop_address: req.dropAddress,
+        fare: req.fare,
+        weight_category: req.weightCategory || 'Standard',
+        status: req.status,
+        driver_name: req.driverName || null,
+        driver_phone: req.driverPhone || null,
+        driver_vehicle_no: req.driverVehicleNo || null,
+        user_id: req.userId || null,
+        user_phone: req.userPhone || null
+      })).catch(() => {});
+    }
   } catch (e) {
     console.error('Failed to save pick drop request:', e);
   }
@@ -148,9 +180,9 @@ export const acceptPickDropRequest = (
     const updated: PickDropRequest = {
       ...current,
       status: 'ACTIVE',
-      driverName: driver?.name || current.driverName || 'Rakibul Islam',
+      driverName: driver?.name || current.driverName || 'Assigned Logistics Pilot',
       driverPhone: driver?.phone || current.driverPhone || '+880 1819-234567',
-      driverVehicleNo: driver?.vehicleNo || current.driverVehicleNo || 'Dhaka Metro-Ta 14-8821'
+      driverVehicleNo: driver?.vehicleNo || current.driverVehicleNo || 'Dhaka Metro Verified'
     };
 
     saveActivePickDropRequest(updated);
